@@ -5,16 +5,20 @@
 #include <QPen>
 #include <QColor>
 
+class Scene;
+
 class NodeGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    NodeGraphicsScene(QObject *parent = nullptr);
+    NodeGraphicsScene(Scene* scene, QObject *parent = nullptr);
+    void setGraphicsScene(int width, int height);
 
 protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
 
 private:
+    Scene* m_scene;
     int gridSize;
     int gridSquares;
     QColor colorBackground, colorLight, colorDark;

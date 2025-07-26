@@ -1,13 +1,14 @@
 #include "NodeGraphicsScene.h"
+#include "Scene.h"
 #include <QPainter>
 #include <cmath>
 
-NodeGraphicsScene::NodeGraphicsScene(QObject *parent)
+NodeGraphicsScene::NodeGraphicsScene(Scene* scene, QObject *parent)
     : QGraphicsScene(parent),
+    m_scene(scene),
     gridSize(20), gridSquares(5),
     colorBackground("#393939"), colorLight("#2f2f2f"), colorDark("#292929"),
-    penLight(colorLight), penDark(colorDark),
-    sceneWidth(64000), sceneHeight(64000)
+    penLight(colorLight), penDark(colorDark)
 {
     penLight.setWidth(1);
     penDark.setWidth(2);
@@ -18,7 +19,6 @@ NodeGraphicsScene::NodeGraphicsScene(QObject *parent)
 
 void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
     QGraphicsScene::drawBackground(painter, rect);
-
     int left = std::floor(rect.left());
     int right = std::ceil(rect.right());
     int top = std::floor(rect.top());
@@ -48,4 +48,9 @@ void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
 
     painter->setPen(penDark);
     painter->drawLines(linesDark);
+}
+
+void NodeGraphicsScene::setGraphicsScene(int width, int height)
+{
+    setSceneRect(-width / 2, -height / 2, width, height);
 }

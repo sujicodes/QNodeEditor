@@ -11,10 +11,29 @@ class NodeEditorGraphicsView : public QGraphicsView  {
 public:
     NodeEditorGraphicsView(QGraphicsScene* grScene, QWidget* parent = nullptr);
 
-private:
-QGraphicsScene* m_grScene;
+protected:
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
-void initUI();
+private:
+
+    QGraphicsScene* m_grScene;
+    double zoomInFactor = 1.25;
+    bool zoomClamp = true;
+    int zoom = 10;
+    int zoomStep = 1;
+    std::pair<int, int> zoomRange = {0, 20};
+
+    void initUI();
+
+    void middleMouseButtonPress(QMouseEvent* event);
+    void middleMouseButtonRelease(QMouseEvent* event);
+    void leftMouseButtonPress(QMouseEvent* event);
+    void leftMouseButtonRelease(QMouseEvent* event);
+    void rightMouseButtonPress(QMouseEvent* event);
+    void rightMouseButtonRelease(QMouseEvent* event);
+
 };
 
 #endif // NODEEDITORGRAPHICSVIEW_H

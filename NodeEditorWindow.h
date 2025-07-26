@@ -2,9 +2,11 @@
 #define NODEEDITORWINDOW_H
 
 #include <QWidget>
-#include <QGraphicsView>
 #include <QVBoxLayout>
-#include "NodeGraphicsScene.h"
+
+class NodeGraphicsScene;
+class NodeEditorGraphicsView;
+class Scene;
 
 class NodeEditorWindow : public QWidget {
     Q_OBJECT
@@ -14,8 +16,9 @@ public:
 
 private:
     QVBoxLayout *layout;
-    QGraphicsView *view;
-    NodeGraphicsScene *grScene;
+    NodeEditorGraphicsView *view;
+    NodeGraphicsScene *graphicsScene;
+    Scene *scene;
 };
 
 #endif // NODEEDITORWINDOW_H
