@@ -1,6 +1,7 @@
 #include "NodeEditorWindow.h"
 #include "NodeEditorGraphicsView.h"
 #include "Scene.h"
+#include "Node.h"
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     : QWidget(parent)
@@ -11,10 +12,11 @@ NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     scene = new Scene(this);                  // Scene holds the logic
-    graphicsScene = scene->graphicsScene();         // Access the QGraphicsScene
+    //graphicsScene = scene->graphicsScene();         // Access the QGraphicsScene
 
+    Node *node = new Node(scene, "My Awesome Node");
     // Create graphics view
-    view = new NodeEditorGraphicsView(graphicsScene, this);
+    view = new NodeEditorGraphicsView(scene->graphicsScene(), this);
     layout->addWidget(view);;
 
     layout->addWidget(view);

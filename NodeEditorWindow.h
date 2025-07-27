@@ -7,6 +7,7 @@
 class NodeGraphicsScene;
 class NodeEditorGraphicsView;
 class Scene;
+class Node;
 
 class NodeEditorWindow : public QWidget {
     Q_OBJECT
@@ -19,6 +20,7 @@ private:
     NodeEditorGraphicsView *view;
     NodeGraphicsScene *graphicsScene;
     Scene *scene;
+    Node *node;
 };
 
 #endif // NODEEDITORWINDOW_H
