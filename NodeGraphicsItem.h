@@ -16,6 +16,8 @@ public:
 
     void setTitle(const QString &title);
     QString title() const;
+    QWidget* content;
+    QWidget* initContent() const;
 
 private:
     void initUI();

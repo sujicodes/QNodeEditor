@@ -1,6 +1,10 @@
 #include "NodeGraphicsItem.h"
 #include <QPainter>
 #include <QPainterPath>
+#include <QGraphicsProxyWidget>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QTextEdit>
 
 NodeGraphicsItem::NodeGraphicsItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -8,6 +12,7 @@ NodeGraphicsItem::NodeGraphicsItem(QGraphicsItem *parent)
     initTitle();
     setTitle("Node Graphics Item");
     initUI();
+    content = initContent();
 }
 
 void NodeGraphicsItem::initUI()
@@ -47,6 +52,24 @@ QString NodeGraphicsItem::title() const
     return _title;
 }
 
+QWidget* NodeGraphicsItem::initContent() const
+{
+    QWidget *contentWidget = new QWidget();
+
+    // Set layout
+    QVBoxLayout *layout = new QVBoxLayout(contentWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    // Add label
+    QLabel *label = new QLabel("Some Title");
+    layout->addWidget(label);
+
+    // Add text edit
+    QTextEdit *textEdit = new QTextEdit("foo");
+    layout->addWidget(textEdit);
+    return contentWidget;
+
+}
 void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
     // Title
