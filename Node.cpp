@@ -5,8 +5,8 @@
 #include "NodeGraphicsScene.h"
 
 Node::Node(Scene* scene, const QString& title, const std::vector<int>& inputs, const std::vector<int>& outputs)
-    : scene(scene), title(title)
-{
+    : scene(scene), title(title){
+
     grNode = new NodeGraphicsItem();
     grNode->setTitle(title);
 
@@ -33,8 +33,8 @@ void Node::addOutput(Socket *output) {
     outputs.append(output);
 }
 
-std::pair<float, float> Node::getSocketPosition(int index, int position)
-{
+std::pair<float, float> Node::getSocketPosition(int index, int position){
+
     float x = (position == Socket::LEFT_TOP || position == Socket::LEFT_BOTTOM) ? 0.0f : grNode->getWidth();
 
     float y = 0.0f;
@@ -45,4 +45,17 @@ std::pair<float, float> Node::getSocketPosition(int index, int position)
     }
 
     return { x, y };
+}
+
+
+QPointF Node::pos() const {
+    return grNode->pos();
+}
+
+void Node::setPos(float x, float y) {
+    grNode->setPos(x, y);
+}
+
+void Node::setPos(const QPointF& point) {
+    grNode->setPos(point);
 }

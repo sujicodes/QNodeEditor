@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QVector>
+#include <QPointF>
 
 class Scene;
 class NodeGraphicsItem;
@@ -19,15 +20,20 @@ public:
     void addOutput(Socket *output);
     NodeGraphicsItem* getNodeGraphicsItem(){return grNode;};
 
+    QPointF pos() const;
+    void setPos(float x, float y);
+    void setPos(const QPointF& point);
+    QVector<Socket*> inputs;
+    QVector<Socket*> outputs;
+
+
+
 private:
     Scene *scene;
     QString title;
     float socketSpacing = 22.0f;
 
     NodeGraphicsItem *grNode;
-
-    QVector<Socket*> inputs;
-    QVector<Socket*> outputs;
 };
 
 #endif // NODE_H
