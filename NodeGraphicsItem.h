@@ -20,6 +20,18 @@ public:
     QWidget* itemWidget;
     QWidget* setItemWidget() const;
 
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+    float getEdgeSize() const { return edgeSize; }
+    float getPadding() const { return padding; }
+    float getTitleHeight() const { return titleHeight; }
+
+    void setWidth(float w) { width = w; }
+    void setHeight(float h) { height = h; }
+    void setEdgeSize(float e) { edgeSize = e; }
+    void setPadding(float p) { padding = p; }
+    void setTitleHeight(float t) { titleHeight = t; }
+
 private:
     void initUI();
     void initTitle();

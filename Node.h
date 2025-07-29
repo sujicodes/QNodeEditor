@@ -6,22 +6,28 @@
 
 class Scene;
 class NodeGraphicsItem;
+class Socket;
 
 class Node {
 public:
-    Node(Scene *scene, const QString &title = "Undefined Node");
+    Node(Scene* scene, const QString& title = "Undefined Node",
+         const std::vector<int>& inputs = {}, const std::vector<int>& outputs = {});
 
-    void addInput(Node *input);    // optional
-    void addOutput(Node *output);  // optional
+    std::pair<float, float> getSocketPosition(int index, int position);
+
+    void addInput(Socket *input);
+    void addOutput(Socket *output);
+    NodeGraphicsItem* getNodeGraphicsItem(){return grNode;};
 
 private:
     Scene *scene;
     QString title;
+    float socketSpacing = 22.0f;
 
     NodeGraphicsItem *grNode;
 
-    QVector<Node*> inputs;
-    QVector<Node*> outputs;
+    QVector<Socket*> inputs;
+    QVector<Socket*> outputs;
 };
 
 #endif // NODE_H

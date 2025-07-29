@@ -1,4 +1,6 @@
 {
-    "gridDisplayOn": false,
-    "nodeSelectedColor": "#FFFFA637"
+    "gridDisplayOn": true,
+    "nodeSelectedColor": "#FFFFA637",
+    "socketBackgroundColor": "green",
+    "socketOutlineColor": "#FF000000"
 }

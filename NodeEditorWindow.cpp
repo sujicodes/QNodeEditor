@@ -15,7 +15,9 @@ NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     scene = new Scene(this);                  // Scene holds the logic
     //graphicsScene = scene->graphicsScene();         // Access the QGraphicsScene
 
-    Node *node = new Node(scene, "My Awesome Node");
+    std::vector<int> inputs = {1, 2, 3};
+    std::vector<int> outputs = {1};
+    Node* node = new Node(scene, "My Awesome Node", inputs, outputs);
     // Create graphics view
     view = new NodeEditorGraphicsView(scene->graphicsScene(), this);
     layout->addWidget(view);;
