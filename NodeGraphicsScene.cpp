@@ -20,7 +20,7 @@ NodeGraphicsScene::NodeGraphicsScene(Scene* scene, QObject *parent)
 
 void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
     QGraphicsScene::drawBackground(painter, rect);
-    if (!themeInstance.gridDisplayOn){
+    if (!Theme::instance().gridDisplayOn){
         return;
     }
     int left = std::floor(rect.left());
