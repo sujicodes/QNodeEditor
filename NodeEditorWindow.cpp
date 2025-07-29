@@ -2,6 +2,7 @@
 #include "NodeEditorGraphicsView.h"
 #include "Scene.h"
 #include "Node.h"
+#include "Theme.h"
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     : QWidget(parent)

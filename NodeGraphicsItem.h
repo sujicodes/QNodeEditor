@@ -3,6 +3,7 @@
 
 #include <QGraphicsItem>
 #include <QGraphicsTextItem>
+#include <QGraphicsProxyWidget>
 #include <QPen>
 #include <QBrush>
 #include <QFont>
@@ -16,12 +17,13 @@ public:
 
     void setTitle(const QString &title);
     QString title() const;
-    QWidget* content;
-    QWidget* initContent() const;
+    QWidget* itemWidget;
+    QWidget* setItemWidget() const;
 
 private:
     void initUI();
     void initTitle();
+    void initItemWidget();
 
 private:
     QGraphicsTextItem *titleItem;
@@ -41,6 +43,8 @@ private:
 
     QBrush brushTitle = QBrush(QColor("#FF313131"));
     QBrush brushBackground = QBrush(QColor("#E3212121"));
+
+    QGraphicsProxyWidget* graphicsProxyWidget{nullptr};
 };
 
 #endif // NODEGRAPHICSITEM_H

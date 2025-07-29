@@ -7,6 +7,7 @@
 
 class Node;
 class Edge;
+struct Theme;
 
 class Scene : public QObject {
     Q_OBJECT
@@ -30,7 +31,7 @@ private:
     int sceneWidth;
     int sceneHeight;
 
-    NodeGraphicsScene * _graphicsScene;
+    NodeGraphicsScene *_graphicsScene;
 };
 
 #endif // SCENE_H

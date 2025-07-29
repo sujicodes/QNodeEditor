@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include <QPainter>
 #include <cmath>
+#include "Theme.h"
 
 NodeGraphicsScene::NodeGraphicsScene(Scene* scene, QObject *parent)
     : QGraphicsScene(parent),
@@ -19,6 +20,9 @@ NodeGraphicsScene::NodeGraphicsScene(Scene* scene, QObject *parent)
 
 void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
     QGraphicsScene::drawBackground(painter, rect);
+    if (!themeInstance.gridDisplayOn){
+        return;
+    }
     int left = std::floor(rect.left());
     int right = std::ceil(rect.right());
     int top = std::floor(rect.top());
@@ -26,6 +30,8 @@ void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
 
     int firstLeft = left - (left % gridSize);
     int firstTop = top - (top % gridSize);
+
+    
 
     QVector<QLine> linesLight, linesDark;
 

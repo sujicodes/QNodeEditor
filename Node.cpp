@@ -11,6 +11,7 @@ Node::Node(Scene *scene, const QString &title)
 
     scene->addNode(this);                        // Register logic node
     scene->graphicsScene()->addItem(grNode);     // Add graphics item to scene
+    // add the above to the addNode method
 }
 
 void Node::addInput(Node *input) {

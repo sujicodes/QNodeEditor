@@ -12,7 +12,8 @@ NodeGraphicsItem::NodeGraphicsItem(QGraphicsItem *parent)
     initTitle();
     setTitle("Node Graphics Item");
     initUI();
-    content = initContent();
+    itemWidget = setItemWidget();
+    initItemWidget();
 }
 
 void NodeGraphicsItem::initUI()
@@ -52,7 +53,12 @@ QString NodeGraphicsItem::title() const
     return _title;
 }
 
-QWidget* NodeGraphicsItem::initContent() const
+/**
+ * @brief Sets the widget inside the Node.
+ * 
+ * @return QWidget of what is diplayed.
+ */
+QWidget* NodeGraphicsItem::setItemWidget() const
 {
     QWidget *contentWidget = new QWidget();
 
@@ -68,6 +74,15 @@ QWidget* NodeGraphicsItem::initContent() const
     QTextEdit *textEdit = new QTextEdit("foo");
     layout->addWidget(textEdit);
     return contentWidget;
+
+}
+
+void NodeGraphicsItem::initItemWidget(){
+    graphicsProxyWidget = new QGraphicsProxyWidget(this);
+    itemWidget->setGeometry(edgeSize, titleHeight+edgeSize, 
+            width-2*edgeSize, height-2*edgeSize-titleHeight);
+    graphicsProxyWidget->setWidget(itemWidget);
+
 
 }
 void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
