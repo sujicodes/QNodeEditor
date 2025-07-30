@@ -27,6 +27,18 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         NodeGraphicsScene.h NodeGraphicsScene.cpp
         NodeEditorWindow.cpp
         NodeEditorGraphicsView.h NodeEditorGraphicsView.cpp
+        Scene.h Scene.cpp
+        NodeGraphicsItem.h NodeGraphicsItem.cpp
+        Node.h Node.cpp
+        Theme.h
+        SocketGraphicsItem.h SocketGraphicsItem.cpp
+        Socket.h Socket.cpp
+        Edge.h Edge.cpp
+        EdgeGraphicsPathItem.h EdgeGraphicsPathItem.cpp
+        DirectEdgeGraphicsPathItem.h DirectEdgeGraphicsPathItem.cpp
+        DirectEdgeGraphicsPathItem.h DirectEdgeGraphicsPathItem.cpp
+        DirectEdgeGraphicsPathItem.h DirectEdgeGraphicsPathItem.cpp
+        BezierEdgeGraphicsPathItem.h BezierEdgeGraphicsPathItem.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET nodeEditor APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
