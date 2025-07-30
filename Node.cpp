@@ -1,36 +1,38 @@
 #include "Node.h"
+#include "Edge.h"
 #include "Scene.h"
 #include "Socket.h"
 #include "NodeGraphicsItem.h"
 #include "NodeGraphicsScene.h"
+#include <iostream>
 
-Node::Node(Scene* scene, const QString& title, const std::vector<int>& inputs, const std::vector<int>& outputs)
+Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
     : scene(scene), title(title){
 
-    grNode = new NodeGraphicsItem();
+    grNode = new NodeGraphicsItem(this);
     grNode->setTitle(title);
 
     scene->addNode(this);
     scene->graphicsScene()->addItem(grNode);
     int counter = 0;
-    for (int i : inputs) {
-        Socket* socket = new Socket(this, counter++, Socket::LEFT_BOTTOM);
+    for (int i : in) {
+        Socket* socket = new Socket(this, counter++, Socket::LEFT_TOP);
         addInput(socket);
     }
 
     counter = 0;
-    for (int i : outputs) {
+    for (int i : outs) {
         Socket* socket = new Socket(this, counter++, Socket::RIGHT_TOP);
-        this->outputs.push_back(socket);
+        addOutput(socket);
     }
 }
 
 void Node::addInput(Socket *input) {
-    inputs.append(input);
+    inputs.push_back(input);
 }
 
 void Node::addOutput(Socket *output) {
-    outputs.append(output);
+    outputs.push_back(output);
 }
 
 std::pair<float, float> Node::getSocketPosition(int index, int position){
@@ -58,4 +60,36 @@ void Node::setPos(float x, float y) {
 
 void Node::setPos(const QPointF& point) {
     grNode->setPos(point);
+}
+
+void Node::updateConnectedEdges()
+{
+    qDebug() << "Updating edges for node:" << title;
+
+    qDebug() << "Inputs size:" << inputs.size();
+    qDebug() << "Outputs size:" << outputs.size();
+    
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        Socket* socket = inputs.at(i);
+        if (!socket) {
+            qDebug() << "Null socket in inputs at index" << i;
+            continue;
+        }
+        if (socket->hasEdge()) {
+            qDebug() << "Input socket has edge";
+            socket->getEdge()->updatePositions();
+        }
+    }
+
+    for (size_t i = 0; i < outputs.size(); ++i) {
+        Socket* socket = outputs.at(i);
+        if (!socket) {
+            qDebug() << "Null socket in outputs at index" << i;
+            continue;
+        }
+        if (socket->hasEdge()) {
+            qDebug() << "Output socket has edge";
+            socket->getEdge()->updatePositions();
+        }
+    }
 }

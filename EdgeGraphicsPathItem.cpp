@@ -18,3 +18,19 @@ void EdgeGraphicsPathItem::paint(QPainter* painter, const QStyleOptionGraphicsIt
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(path());
 }
+
+QPointF EdgeGraphicsPathItem::getSource() const {
+    return posSource;
+}
+
+QPointF EdgeGraphicsPathItem::getDestination() const {
+    return posDestination;
+}
+
+void EdgeGraphicsPathItem::setSource(QPointF pos) {
+    posSource = pos;
+}
+
+void EdgeGraphicsPathItem::setDestination(QPointF pos) {
+    posDestination = pos;
+}

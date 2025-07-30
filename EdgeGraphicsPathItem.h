@@ -13,6 +13,12 @@ class EdgeGraphicsPathItem : public QGraphicsPathItem {
 public:
     explicit EdgeGraphicsPathItem(Edge* edge, QGraphicsItem* parent = nullptr);
 
+    void setSource(QPointF pos);
+    void setDestination(QPointF pos);
+
+    QPointF getSource() const;
+    QPointF getDestination() const;
+
     virtual void updatePath() = 0;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;

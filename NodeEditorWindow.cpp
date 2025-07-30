@@ -2,7 +2,6 @@
 #include "NodeEditorGraphicsView.h"
 #include "Scene.h"
 #include "Node.h"
-#include "Theme.h"
 #include "Edge.h"
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
@@ -25,7 +24,7 @@ NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     node3->setPos(200, -150);
 
     // Create edges between sockets
-    Edge* edge1 = new Edge(scene, node1->outputs[0], node2->inputs[0]);
+    Edge* edge1 = new Edge(scene, node1->outputs[0], node2->inputs[0], Edge::EDGE_TYPE_DIRECT);
     Edge* edge2 = new Edge(scene, node2->outputs[0], node3->inputs[0], Edge::EDGE_TYPE_BEZIER);
     // Create graphics view
     view = new NodeEditorGraphicsView(scene->graphicsScene(), this);

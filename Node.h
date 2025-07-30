@@ -12,21 +12,20 @@ class Socket;
 class Node {
 public:
     Node(Scene* scene, const QString& title = "Undefined Node",
-         const std::vector<int>& inputs = {}, const std::vector<int>& outputs = {});
+         const std::vector<int>& in = {}, const std::vector<int>& outs = {});
 
     std::pair<float, float> getSocketPosition(int index, int position);
 
     void addInput(Socket *input);
     void addOutput(Socket *output);
     NodeGraphicsItem* getNodeGraphicsItem(){return grNode;};
+    void updateConnectedEdges();
 
     QPointF pos() const;
     void setPos(float x, float y);
     void setPos(const QPointF& point);
-    QVector<Socket*> inputs;
-    QVector<Socket*> outputs;
-
-
+    std::vector<Socket*> inputs;
+    std::vector<Socket*> outputs;
 
 private:
     Scene *scene;

@@ -8,24 +8,30 @@
 #include <QBrush>
 #include <QFont>
 
+class Node;
+
 class NodeGraphicsItem : public QGraphicsItem {
 public:
-    NodeGraphicsItem(QGraphicsItem *parent = nullptr);
+    NodeGraphicsItem(Node *node, QGraphicsItem *parent = nullptr);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+
 
     void setTitle(const QString &title);
     QString title() const;
     QWidget* itemWidget;
     QWidget* setItemWidget() const;
 
+    Node* getNode() const { return node; }
     float getWidth() const { return width; }
     float getHeight() const { return height; }
     float getEdgeSize() const { return edgeSize; }
     float getPadding() const { return padding; }
     float getTitleHeight() const { return titleHeight; }
 
+    void setNode(Node* n) { node = n;}
     void setWidth(float w) { width = w; }
     void setHeight(float h) { height = h; }
     void setEdgeSize(float e) { edgeSize = e; }
@@ -49,6 +55,8 @@ private:
     float edgeSize = 10.0;
     float titleHeight = 24.0;
     float padding = 4.0;
+
+    Node *node;
 
     QPen penDefault = QPen(QColor("#7F000000"));
     QPen penSelected = QPen(QColor("#FFFFA637"));

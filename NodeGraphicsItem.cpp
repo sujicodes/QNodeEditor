@@ -6,8 +6,11 @@
 #include <QLabel>
 #include <QTextEdit>
 
-NodeGraphicsItem::NodeGraphicsItem(QGraphicsItem *parent)
+#include "Node.h"
+
+NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
+    , node(node)
 {
     initTitle();
     setTitle("Node Graphics Item");
@@ -115,4 +118,10 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->setPen(isSelected() ? penSelected : penDefault);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(pathOutline.simplified());
+}
+
+void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    QGraphicsItem::mouseMoveEvent(event);
+    node->updateConnectedEdges();
 }

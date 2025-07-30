@@ -14,6 +14,7 @@ public:
     NodeGraphicsScene(Scene* scene, QObject *parent = nullptr);
     void setGraphicsScene(int width, int height);
 
+
 protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
 
