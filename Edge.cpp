@@ -23,11 +23,6 @@ Edge::Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type)
         grEdge = new BezierEdgeGraphicsPathItem(this);
     }
     updatePositions();
-
-#ifdef QT_DEBUG
-    qDebug() << "Edge: from" << grEdge->getSource() << "to" << grEdge->getDestination();
-#endif
-
     scene->graphicsScene()->addItem(grEdge);
 }
 
@@ -48,6 +43,8 @@ void Edge::updatePositions() {
         endPos.rx() += endNodePos.x();
         endPos.ry() += endNodePos.y();
         grEdge->setDestination(endPos);
+    } else {
+        grEdge->setDestination(sourcePos);
     }
 
 #ifdef QT_DEBUG

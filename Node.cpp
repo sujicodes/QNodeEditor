@@ -4,7 +4,6 @@
 #include "Socket.h"
 #include "NodeGraphicsItem.h"
 #include "NodeGraphicsScene.h"
-#include <iostream>
 
 Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
     : scene(scene), title(title){
@@ -63,20 +62,10 @@ void Node::setPos(const QPointF& point) {
 }
 
 void Node::updateConnectedEdges()
-{
-    qDebug() << "Updating edges for node:" << title;
-
-    qDebug() << "Inputs size:" << inputs.size();
-    qDebug() << "Outputs size:" << outputs.size();
-    
+{   
     for (size_t i = 0; i < inputs.size(); ++i) {
         Socket* socket = inputs.at(i);
-        if (!socket) {
-            qDebug() << "Null socket in inputs at index" << i;
-            continue;
-        }
         if (socket->hasEdge()) {
-            qDebug() << "Input socket has edge";
             socket->getEdge()->updatePositions();
         }
     }
@@ -84,11 +73,9 @@ void Node::updateConnectedEdges()
     for (size_t i = 0; i < outputs.size(); ++i) {
         Socket* socket = outputs.at(i);
         if (!socket) {
-            qDebug() << "Null socket in outputs at index" << i;
             continue;
         }
         if (socket->hasEdge()) {
-            qDebug() << "Output socket has edge";
             socket->getEdge()->updatePositions();
         }
     }

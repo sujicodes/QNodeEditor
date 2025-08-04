@@ -15,6 +15,8 @@ public:
 
     Scene* getScene() const { return scene; }
     EdgeGraphicsPathItem* getGraphicsEdge() const { return grEdge; }
+    Socket* getEndSocket() { return endSocket; }
+    Socket* getStartSocket() { return startSocket; }
 
     void updatePositions();
     void removeFromSockets();

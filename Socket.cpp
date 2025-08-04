@@ -7,8 +7,6 @@
 Socket::Socket(Node* node, int index, int position)
     : node(node), index(index), position(position)
 {
-    if (DEBUG)
-        qDebug() << "Socket -- creating with index" << index << "position" << static_cast<int>(position) << "for node" << node;
 
     grSocket = new SocketGraphicsItem(node->getNodeGraphicsItem());
 
@@ -18,14 +16,9 @@ Socket::Socket(Node* node, int index, int position)
 }
 
 QPointF Socket::getSocketPosition() const {
-    if (DEBUG)
-        qDebug() << "  GSP:" << index << static_cast<int>(position) << "node:" << node;
 
     std::pair<float, float> posPair = node->getSocketPosition(index, position);
     QPointF res(posPair.first, posPair.second);
-
-    if (DEBUG)
-        qDebug() << "  result:" << res;
 
     return res;
 }
