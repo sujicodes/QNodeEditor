@@ -13,6 +13,7 @@ class NodeGraphicsScene : public QGraphicsScene {
 public:
     NodeGraphicsScene(Scene* scene, QObject *parent = nullptr);
     void setGraphicsScene(int width, int height);
+    Scene* getScene(){ return m_scene; };
 
 
 protected:

@@ -14,7 +14,11 @@ public:
     ~Edge();
 
     Scene* getScene() const { return scene; }
-    EdgeGraphicsPathItem* getGraphicsEdge() const { return grEdge; }
+    EdgeGraphicsPathItem* getEdgeGraphicsItem() const { return grEdge; }
+    void setEndSocket(Socket* socket) { endSocket = socket;}
+    Socket* getEndSocket() { return endSocket; }
+    void setStartSocket(Socket* socket) { startSocket = socket;}
+    Socket* getStartSocket() { return startSocket; }
 
     void updatePositions();
     void removeFromSockets();

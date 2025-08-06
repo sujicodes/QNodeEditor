@@ -15,21 +15,21 @@ public:
     Socket(Node* node, int index = 0, int position = LEFT_TOP);
 
     SocketGraphicsItem* getGraphicsSocket() const { return grSocket; }
-    inline static const int LEFT_TOP = 1;
-    inline static const int LEFT_BOTTOM = 2;
-    inline static const int RIGHT_TOP = 3;
-    inline static const int RIGHT_BOTTOM = 4;
+    static const int LEFT_TOP = 1;
+    static const int LEFT_BOTTOM = 2;
+    static const int RIGHT_TOP = 3;
+    static const int RIGHT_BOTTOM = 4;
 
-    void setConnectedEdge(Edge* edge = nullptr);
-    Edge* getConnectedEdge() const;
+    void setEdge(Edge* edge = nullptr);
 
-    inline int getIndex() const { return index; }
-    inline int getPosition() const { return position; }
-    inline Node* getNode() const { return node; }
+    int getIndex() const { return index; }
+    int getPosition() const { return position; }
+    Node* getNode() const { return node; }
     QPointF getSocketPosition() const;
 
     bool hasEdge() const;
     Edge* getEdge() const;
+    void setEdge() const;
 
 private:
     Node* node;
