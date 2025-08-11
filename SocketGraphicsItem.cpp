@@ -1,9 +1,12 @@
 #include "SocketGraphicsItem.h"
+#include "Node.h"
+#include "Socket.h"
+#include "NodeGraphicsItem.h"
 #include "Theme.h"
 #include <QPainter>
 
-SocketGraphicsItem::SocketGraphicsItem(QGraphicsItem* parent)
-    : QGraphicsItem(parent),
+SocketGraphicsItem::SocketGraphicsItem(Socket* sock)
+    : QGraphicsItem(sock->getNode()->getNodeGraphicsItem()),
     radius(6.0),
     outlineWidth(1.0)
 {
@@ -14,6 +17,7 @@ SocketGraphicsItem::SocketGraphicsItem(QGraphicsItem* parent)
     pen.setWidthF(outlineWidth);
 
     brush = QBrush(backgroundColor);
+    socket = sock;
 }
 
 QRectF SocketGraphicsItem::boundingRect() const {

@@ -5,35 +5,56 @@
 #include <QGraphicsScene>
 #include <QWidget>
 
-class NodeEditorGraphicsView : public QGraphicsView  {
+class Edge;
+class Socket;
+class SocketGraphicsItem;
+class NodeGraphicsScene;
+
+class NodeEditorGraphicsView : public QGraphicsView {
     Q_OBJECT
 
 public:
-    NodeEditorGraphicsView(QGraphicsScene* grScene, QWidget* parent = nullptr);
+    NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent = nullptr);
 
 protected:
+    void initUI();
+
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 
-private:
-
-    QGraphicsScene* m_grScene;
-    double zoomInFactor = 1.25;
-    bool zoomClamp = true;
-    int zoom = 10;
-    int zoomStep = 1;
-    std::pair<int, int> zoomRange = {0, 20};
-
-    void initUI();
-
     void middleMouseButtonPress(QMouseEvent* event);
     void middleMouseButtonRelease(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
     void leftMouseButtonPress(QMouseEvent* event);
     void leftMouseButtonRelease(QMouseEvent* event);
     void rightMouseButtonPress(QMouseEvent* event);
     void rightMouseButtonRelease(QMouseEvent* event);
 
+    QGraphicsItem* getItemAtClick(QMouseEvent* event);
+    void edgeDragStart(SocketGraphicsItem* item);
+    bool edgeDragEnd(QGraphicsItem* item);
+    bool distanceBetweenClickAndReleaseIsOff(QMouseEvent* event);
+
+private:
+    static const int MODE_NOOP = 1;
+    static const int MODE_EDGE_DRAG = 2;
+    static const int EDGE_DRAG_START_THRESHOLD = 10;
+
+    NodeGraphicsScene* m_grScene;
+
+    int mode = MODE_NOOP;
+    float zoomInFactor;
+    int zoomStep;
+    int zoom;
+    bool zoomClamp;
+    std::pair<int, int> zoomRange;
+
+    QPointF lastLeftClickScenePos;
+
+    Edge* dragEdge;
+    Edge* previousEdge;
+    Socket* lastStartSocket;
 };
 
 #endif // NODEEDITORGRAPHICSVIEW_H

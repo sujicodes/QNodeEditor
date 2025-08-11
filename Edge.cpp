@@ -12,9 +12,9 @@ Edge::Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type)
     : scene(scene), startSocket(startSocket), endSocket(endSocket)
 
 {
-    startSocket->setConnectedEdge(this);
+    startSocket->setEdge(this);
     if (endSocket != nullptr) {
-        endSocket->setConnectedEdge(this);
+        endSocket->setEdge(this);
     }
 
     if (type == EDGE_TYPE_DIRECT){
@@ -23,11 +23,6 @@ Edge::Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type)
         grEdge = new BezierEdgeGraphicsPathItem(this);
     }
     updatePositions();
-
-#ifdef QT_DEBUG
-    qDebug() << "Edge: from" << grEdge->getSource() << "to" << grEdge->getDestination();
-#endif
-
     scene->graphicsScene()->addItem(grEdge);
 }
 
@@ -48,6 +43,8 @@ void Edge::updatePositions() {
         endPos.rx() += endNodePos.x();
         endPos.ry() += endNodePos.y();
         grEdge->setDestination(endPos);
+    } else {
+        grEdge->setDestination(sourcePos);
     }
 
 #ifdef QT_DEBUG
@@ -59,8 +56,8 @@ void Edge::updatePositions() {
 }
 
 void Edge::removeFromSockets() {
-    if (startSocket) startSocket->setConnectedEdge();
-    if (endSocket) endSocket->setConnectedEdge();
+    if (startSocket) startSocket->setEdge();
+    if (endSocket) endSocket->setEdge();
     startSocket = nullptr;
     endSocket = nullptr;
 }

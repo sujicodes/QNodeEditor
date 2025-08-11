@@ -22,6 +22,7 @@ public:
     virtual void updatePath() = 0;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+    inline static const int EDGE_CP_ROUNDNESS = 100;
 
 protected:
     Edge* edge;
@@ -31,6 +32,7 @@ protected:
 
     QPen pen = QPen(color);
     QPen penSelected = QPen(colorSelected);
+    QPen penDragging = QPen(color);
 
     QPointF posSource = QPointF(0, 0);
     QPointF posDestination = QPointF(200, 100);
