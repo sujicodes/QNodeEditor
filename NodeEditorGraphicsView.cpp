@@ -3,8 +3,10 @@
 #include <QMouseEvent>
 #include <QEvent>
 #include <QDebug>
+#include <QString>
 
-
+#include "Node.h"
+#include "NodeGraphicsItem.h"
 #include "NodeEditorGraphicsView.h"
 #include "NodeGraphicsScene.h"
 #include "Socket.h"
@@ -15,6 +17,19 @@
 #include <QMouseEvent>
 #include <QGraphicsItem>
 #include <QDebug>
+
+QString debug_modifiers(QInputEvent* event)
+{
+    QString out = "MODS: ";
+
+    Qt::KeyboardModifiers mods = event->modifiers();
+
+    if (mods & Qt::ShiftModifier)   out += "SHIFT ";
+    if (mods & Qt::ControlModifier) out += "CTRL ";
+    if (mods & Qt::AltModifier)     out += "ALT ";
+
+    return out;
+}
 
 NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent)
     : QGraphicsView(parent), m_grScene(grScene), mode(MODE_NOOP),
@@ -34,6 +49,16 @@ void NodeEditorGraphicsView::initUI() {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setDragMode(QGraphicsView::RubberBandDrag);
+}
+
+void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Delete) {
+        deleteSelected();
+    } else {
+        QGraphicsView::keyPressEvent(event);  // call base class
+    }
 }
 
 void NodeEditorGraphicsView::mousePressEvent(QMouseEvent* event) {
@@ -86,6 +111,11 @@ void NodeEditorGraphicsView::middleMouseButtonRelease(QMouseEvent* event) {
 void NodeEditorGraphicsView::leftMouseButtonPress(QMouseEvent* event) {
     QGraphicsItem* item = getItemAtClick(event);
     lastLeftClickScenePos = mapToScene(event->pos());
+    if (auto obj = dynamic_cast<QObject*>(item))
+        qDebug() << "Item type:" << obj->metaObject()->className();
+
+    qDebug() << debug_modifiers(event) << item;
+    
 
     if (auto socketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
         if (mode == MODE_NOOP) {
@@ -99,11 +129,45 @@ void NodeEditorGraphicsView::leftMouseButtonPress(QMouseEvent* event) {
         if (edgeDragEnd(item)) return;
     }
 
+
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+        qDebug() << "LMB + Shift on" << item;
+
+        QMouseEvent fakeEvent(
+            QEvent::MouseButtonPress,
+            event->localPos(),
+            event->screenPos(),
+            Qt::LeftButton,
+            event->buttons() | Qt::LeftButton,
+            event->modifiers() | Qt::ControlModifier
+        );
+
+        QGraphicsView::mousePressEvent(&fakeEvent);
+        return;
+    }
     QGraphicsView::mousePressEvent(event);
 }
 
 void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
     QGraphicsItem* item = getItemAtClick(event);
+
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+        qDebug() << "LMB Release + Shift on" << item;
+
+        QMouseEvent fakeEvent(
+            event->type(),            
+            event->localPos(),
+            event->screenPos(),
+            Qt::LeftButton,
+            Qt::NoButton,             
+            event->modifiers() | Qt::ControlModifier
+        );
+
+        QGraphicsView::mouseReleaseEvent(&fakeEvent);
+        return;
+    }
 
     if (mode == MODE_EDGE_DRAG && distanceBetweenClickAndReleaseIsOff(event)) {
         if (edgeDragEnd(item)) return;
@@ -134,7 +198,7 @@ void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
     if(!sock){
         qDebug() << "not socklewt";
     }
-    previousEdge = socketItem->getSocket()->getEdge();
+    previousEdge = socketItem->getSocket()->getConnectedEdge();
     lastStartSocket = socketItem->getSocket();
 
     dragEdge = new Edge(m_grScene->getScene(), socketItem->getSocket(), nullptr, Edge::EDGE_TYPE_BEZIER);
@@ -144,24 +208,26 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
     mode = MODE_NOOP;
     qDebug() << "Edge Drag END";
     if (auto endSocketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
-        if (endSocketItem->getSocket()->hasEdge()) endSocketItem->getSocket()->getEdge()->remove();
-        if (previousEdge) previousEdge->remove();
+        if (endSocketItem->getSocket() != lastStartSocket) {
+            if (endSocketItem->getSocket()->hasConnectedEdge()) endSocketItem->getSocket()->getConnectedEdge()->remove();
+            if (previousEdge) previousEdge->remove();
 
-        dragEdge->setStartSocket(lastStartSocket);
-        dragEdge->setEndSocket(endSocketItem->getSocket());
+            dragEdge->setStartSocket(lastStartSocket);
+            dragEdge->setEndSocket(endSocketItem->getSocket());
 
-        dragEdge->getStartSocket()->setEdge(dragEdge);
-        dragEdge->getEndSocket()->setEdge(dragEdge);
+            dragEdge->getStartSocket()->setConnectedEdge(dragEdge);
+            dragEdge->getEndSocket()->setConnectedEdge(dragEdge);
 
-        dragEdge->updatePositions();
-        return true;
+            dragEdge->updatePositions();
+            return true;
+            }
     }
 
     dragEdge->remove();
     dragEdge = nullptr;
 
     if (previousEdge) {
-        previousEdge->getStartSocket()->setEdge(previousEdge);
+        previousEdge->getStartSocket()->setConnectedEdge(previousEdge);
     }
 
     return false;
@@ -196,5 +262,19 @@ void NodeEditorGraphicsView::wheelEvent(QWheelEvent* event) {
 
     if (!clamped || !zoomClamp) {
         scale(zoomFactor, zoomFactor);
+    }
+}
+
+
+void NodeEditorGraphicsView::deleteSelected() {
+
+    for (QGraphicsItem* item : m_grScene->selectedItems())  // grScene is your QGraphicsScene*
+    {
+        if (auto edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
+            edgeItem->getEdge()->remove();
+        }
+        else if (auto nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+            nodeItem->getNode()->remove();
+        }
     }
 }

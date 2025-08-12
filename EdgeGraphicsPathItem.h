@@ -24,6 +24,8 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
     inline static const int EDGE_CP_ROUNDNESS = 100;
 
+    Edge* getEdge(){ return edge; };
+
 protected:
     Edge* edge;
 

@@ -12,9 +12,9 @@ Edge::Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type)
     : scene(scene), startSocket(startSocket), endSocket(endSocket)
 
 {
-    startSocket->setEdge(this);
+    startSocket->setConnectedEdge(this);
     if (endSocket != nullptr) {
-        endSocket->setEdge(this);
+        endSocket->setConnectedEdge(this);
     }
 
     if (type == EDGE_TYPE_DIRECT){
@@ -56,8 +56,8 @@ void Edge::updatePositions() {
 }
 
 void Edge::removeFromSockets() {
-    if (startSocket) startSocket->setEdge();
-    if (endSocket) endSocket->setEdge();
+    if (startSocket) startSocket->setConnectedEdge();
+    if (endSocket) endSocket->setConnectedEdge();
     startSocket = nullptr;
     endSocket = nullptr;
 }

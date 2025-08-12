@@ -20,16 +20,15 @@ public:
     static const int RIGHT_TOP = 3;
     static const int RIGHT_BOTTOM = 4;
 
-    void setEdge(Edge* edge = nullptr);
+    void setConnectedEdge(Edge* edge = nullptr);
 
     int getIndex() const { return index; }
     int getPosition() const { return position; }
     Node* getNode() const { return node; }
     QPointF getSocketPosition() const;
 
-    bool hasEdge() const;
-    Edge* getEdge() const;
-    void setEdge() const;
+    bool hasConnectedEdge() const;
+    Edge* getConnectedEdge() const;
 
 private:
     Node* node;

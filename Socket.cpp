@@ -23,17 +23,17 @@ QPointF Socket::getSocketPosition() const {
     return res;
 }
 
-void Socket::setEdge(Edge* edge) {
+void Socket::setConnectedEdge(Edge* edge) {
     this->edge = edge;
 }
 
 
-bool Socket::hasEdge() const
+bool Socket::hasConnectedEdge() const
 {
     return edge != nullptr;
 }
 
-Edge* Socket::getEdge() const
+Edge* Socket::getConnectedEdge() const
 {
     return edge;
 }

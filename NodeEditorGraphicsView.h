@@ -19,6 +19,7 @@ public:
 protected:
     void initUI();
 
+    void keyPressEvent(QKeyEvent* event);
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
@@ -35,6 +36,7 @@ protected:
     void edgeDragStart(SocketGraphicsItem* item);
     bool edgeDragEnd(QGraphicsItem* item);
     bool distanceBetweenClickAndReleaseIsOff(QMouseEvent* event);
+    void deleteSelected();
 
 private:
     static const int MODE_NOOP = 1;

@@ -4,6 +4,8 @@
 #include "Socket.h"
 #include "NodeGraphicsItem.h"
 #include "NodeGraphicsScene.h"
+#include <QDebug>
+
 
 Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
     : scene(scene), title(title){
@@ -65,8 +67,8 @@ void Node::updateConnectedEdges()
 {   
     for (size_t i = 0; i < inputs.size(); ++i) {
         Socket* socket = inputs.at(i);
-        if (socket->hasEdge()) {
-            socket->getEdge()->updatePositions();
+        if (socket->hasConnectedEdge()) {
+            socket->getConnectedEdge()->updatePositions();
         }
     }
 
@@ -75,8 +77,37 @@ void Node::updateConnectedEdges()
         if (!socket) {
             continue;
         }
-        if (socket->hasEdge()) {
-            socket->getEdge()->updatePositions();
+        if (socket->hasConnectedEdge()) {
+            socket->getConnectedEdge()->updatePositions();
         }
     }
+}
+
+void Node::remove() {
+    qDebug() << "> Removing Node" << this;
+    qDebug() << " - remove all edges from sockets";
+
+    for (Socket* socket : inputs) {
+        if (socket->hasConnectedEdge()) {
+            qDebug() << "    - removing from socket:" << socket
+                     << "edge:" << socket->getConnectedEdge();
+            socket->getConnectedEdge()->remove();
+        }
+    }
+    for (Socket* socket : outputs) {
+        if (socket->hasConnectedEdge()) {
+            qDebug() << "    - removing from socket:" << socket
+                     << "edge:" << socket->getConnectedEdge();
+            socket->getConnectedEdge()->remove();
+        }
+    }
+
+    qDebug() << " - remove grNode";
+    scene->graphicsScene()->removeItem(grNode);
+    grNode = nullptr;
+
+    qDebug() << " - remove node from the scene";
+    scene->removeNode(this);
+
+    qDebug() << " - everything was done.";
 }

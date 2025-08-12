@@ -24,6 +24,7 @@ public:
     QPointF pos() const;
     void setPos(float x, float y);
     void setPos(const QPointF& point);
+    void remove();
     std::vector<Socket*> inputs;
     std::vector<Socket*> outputs;
 
