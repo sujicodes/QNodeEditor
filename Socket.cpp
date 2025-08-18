@@ -37,3 +37,22 @@ Edge* Socket::getConnectedEdge() const
 {
     return edge;
 }
+
+QJsonObject Socket::serialize() const {
+    QJsonObject obj;
+    obj["id"] = static_cast<qint64>(id);
+    obj["index"] = index;
+    obj["position"] = position; // can be int, enum, or QString
+
+    return obj;
+}
+
+void Socket::deserialize(
+    const QJsonObject& data,
+    std::unordered_map<qint64, Serializable*>& hashmap
+    ) {
+
+    id = data["id"].toDouble();   // or .toVariant().toLongLong()
+    hashmap[id] = this;
+    return;
+}

@@ -4,16 +4,16 @@
 #include <QObject>
 #include <QVector>
 #include "NodeGraphicsScene.h"
+#include "Serializable.h"
 
 class Node;
 class Edge;
 struct Theme;
 
-class Scene : public QObject {
-    Q_OBJECT
+class Scene : public Serializable {
 
 public:
-    explicit Scene(QObject *parent = nullptr);
+    Scene();
 
     void addNode(Node* node);
     void addEdge(Edge* edge);
@@ -21,6 +21,18 @@ public:
     void removeEdge(Edge* edge);
 
     NodeGraphicsScene* graphicsScene() const { return _graphicsScene; }
+    void clearScene();
+
+    bool loadFromFile(const QString& filename);
+    bool saveToFile(const QString& filename);
+
+    QJsonObject serialize() const override;
+    void deserialize(
+        const QJsonObject& data,
+        std::unordered_map<qint64, Serializable*>& hashmap
+
+    ) override;
+    
 
 private:
     void initUI();

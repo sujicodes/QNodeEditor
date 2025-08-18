@@ -5,13 +5,15 @@
 #include "NodeGraphicsItem.h"
 #include "NodeGraphicsScene.h"
 #include <QDebug>
+#include <QJsonArray>
+
 
 
 Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
-    : scene(scene), title(title){
+    : scene(scene){
 
     grNode = new NodeGraphicsItem(this);
-    grNode->setTitle(title);
+    setTitle(title);
 
     scene->addNode(this);
     scene->graphicsScene()->addItem(grNode);
@@ -26,6 +28,11 @@ Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const
         Socket* socket = new Socket(this, counter++, Socket::RIGHT_TOP);
         addOutput(socket);
     }
+}
+
+void Node::setTitle(const QString &value) {
+    m_title = value;
+    grNode->setTitle(value);
 }
 
 void Node::addInput(Socket *input) {
@@ -59,9 +66,6 @@ void Node::setPos(float x, float y) {
     grNode->setPos(x, y);
 }
 
-void Node::setPos(const QPointF& point) {
-    grNode->setPos(point);
-}
 
 void Node::updateConnectedEdges()
 {   
@@ -111,3 +115,93 @@ void Node::remove() {
 
     qDebug() << " - everything was done.";
 }
+
+QJsonObject Node::serialize() const {
+    QJsonObject obj;
+    obj["id"] = id;
+    obj["title"] = m_title;
+    obj["pos_x"] = grNode ? grNode->scenePos().x() : 0.0;
+    obj["pos_y"] = grNode ? grNode->scenePos().y() : 0.0;
+
+    QJsonArray inputsArray;
+    for (const Socket* socket : inputs) {
+        if (socket) inputsArray.append(socket->serialize());
+    }
+    obj["inputs"] = inputsArray;
+
+    QJsonArray outputsArray;
+    for (const Socket* socket : outputs) {
+        if (socket) outputsArray.append(socket->serialize());
+    }
+    obj["outputs"] = outputsArray;
+
+    if (content) {
+        obj["content"] = content->serialize();
+    } else {
+        obj["content"] = QJsonObject(); // empty object
+    }
+    return obj;
+}
+
+void Node::deserialize(
+    const QJsonObject& data,
+    std::unordered_map<qint64, Serializable*>& hashmap
+    ) {
+    // Set ID and add to hashmap
+    id = static_cast<qint64>(data["id"].toDouble());
+
+    // Position
+    setPos(data["pos_x"].toDouble(), data["pos_y"].toDouble());
+
+    // Title
+    setTitle(data["title"].toString());
+
+    // Extract inputs array
+    QJsonArray inputsArray = data["inputs"].toArray();
+    std::vector<QJsonObject> inputsList;
+    for (const auto& v : inputsArray) {
+        inputsList.push_back(v.toObject());
+    }
+    std::sort(inputsList.begin(), inputsList.end(), [](const QJsonObject& a, const QJsonObject& b) {
+        int aKey = a["index"].toInt() + a["position"].toInt() * 10000;
+        int bKey = b["index"].toInt() + b["position"].toInt() * 10000;
+        return aKey < bKey;
+    });
+
+    // Deserialize inputs
+    inputs.clear();
+    for (const auto& socketData : inputsList) {
+        auto* newSocket = new Socket(this,
+                                     socketData["index"].toInt(),
+                                     socketData["position"].toInt());
+        newSocket->deserialize(socketData, hashmap);
+        inputs.push_back(newSocket);
+    }
+
+    // Extract outputs array
+    QJsonArray outputsArray = data["outputs"].toArray();
+    std::vector<QJsonObject> outputsList;
+    for (const auto& v : outputsArray) {
+        outputsList.push_back(v.toObject());
+    }
+    std::sort(outputsList.begin(), outputsList.end(), [](const QJsonObject& a, const QJsonObject& b) {
+        int aKey = a["index"].toInt() + a["position"].toInt() * 10000;
+        int bKey = b["index"].toInt() + b["position"].toInt() * 10000;
+        return aKey < bKey;
+    });
+
+    // Deserialize outputs
+    outputs.clear();
+    for (const auto& socketData : outputsList) {
+        auto* newSocket = new Socket(this,
+                                     socketData["index"].toInt(),
+                                     socketData["position"].toInt());
+        newSocket->deserialize(socketData, hashmap);
+        outputs.push_back(newSocket);
+    }
+}
+
+
+
+
+

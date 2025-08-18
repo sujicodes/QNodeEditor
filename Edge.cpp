@@ -9,21 +9,18 @@
 #include "Node.h"
 
 Edge::Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type)
-    : scene(scene), startSocket(startSocket), endSocket(endSocket)
+    : scene(scene), m_startSocket(startSocket), m_endSocket(endSocket)
 
 {
-    startSocket->setConnectedEdge(this);
-    if (endSocket != nullptr) {
-        endSocket->setConnectedEdge(this);
+    setStartSocket(startSocket);
+    setEndSocket(endSocket);
+    grEdge = new BezierEdgeGraphicsPathItem(this);
+    scene->graphicsScene()->addItem(grEdge);
+    scene->addEdge(this);
+    if(startSocket){
+        updatePositions();
     }
 
-    if (type == EDGE_TYPE_DIRECT){
-        grEdge = new DirectEdgeGraphicsPathItem(this);
-    } else {
-        grEdge = new BezierEdgeGraphicsPathItem(this);
-    }
-    updatePositions();
-    scene->graphicsScene()->addItem(grEdge);
 }
 
 Edge::~Edge() {
@@ -31,15 +28,15 @@ Edge::~Edge() {
 }
 
 void Edge::updatePositions() {
-    QPointF sourcePos = startSocket->getSocketPosition();
-    QPointF nodePos = startSocket->getNode()->getNodeGraphicsItem()->pos();
+    QPointF sourcePos = m_startSocket->getSocketPosition();
+    QPointF nodePos = m_startSocket->getNode()->getNodeGraphicsItem()->pos();
     sourcePos.rx() += nodePos.x();
     sourcePos.ry() += nodePos.y();
     grEdge->setSource(sourcePos);
 
-    if (endSocket) {
-        QPointF endPos = endSocket->getSocketPosition();
-        QPointF endNodePos = endSocket->getNode()->getNodeGraphicsItem()->pos();
+    if (m_endSocket) {
+        QPointF endPos = m_endSocket->getSocketPosition();
+        QPointF endNodePos = m_endSocket->getNode()->getNodeGraphicsItem()->pos();
         endPos.rx() += endNodePos.x();
         endPos.ry() += endNodePos.y();
         grEdge->setDestination(endPos);
@@ -48,18 +45,32 @@ void Edge::updatePositions() {
     }
 
 #ifdef QT_DEBUG
-    qDebug() << " SS:" << startSocket;
-    qDebug() << " ES:" << endSocket;
+    qDebug() << " SS:" << m_startSocket;
+    qDebug() << " ES:" << m_endSocket;
 #endif
 
     grEdge->updatePath();
 }
 
+void Edge::setStartSocket(Socket* socket){
+    m_startSocket = socket;
+    if(socket)
+        m_startSocket->setConnectedEdge(this);
+
+}
+
+void Edge::setEndSocket(Socket* socket){
+    m_endSocket = socket;
+    if(socket)
+        m_endSocket->setConnectedEdge(this);
+
+}
+
 void Edge::removeFromSockets() {
-    if (startSocket) startSocket->setConnectedEdge();
-    if (endSocket) endSocket->setConnectedEdge();
-    startSocket = nullptr;
-    endSocket = nullptr;
+    if (m_startSocket) m_startSocket->setConnectedEdge();
+    if (m_endSocket) m_endSocket->setConnectedEdge();
+    m_startSocket = nullptr;
+    m_endSocket = nullptr;
 }
 
 void Edge::remove() {
@@ -70,4 +81,51 @@ void Edge::remove() {
     delete grEdge;
     grEdge = nullptr;
     if (scene) scene->removeEdge(this);
+}
+
+QJsonObject Edge::serialize() const {
+    QJsonObject obj;
+    obj["id"] = static_cast<qint64>(id);
+    // Assuming edge_type is convertible to int or QString
+
+    if (m_startSocket) {
+        obj["start"] = static_cast<qint64>(m_startSocket->getId());
+    } else {
+        obj["start"] = QJsonValue(); // null
+    }
+
+    if (m_endSocket) {
+        obj["end"] = static_cast<qint64>(m_endSocket->getId());
+    } else {
+        obj["end"] = QJsonValue(); // null
+    }
+
+    return obj;
+}
+
+void Edge::deserialize(
+    const QJsonObject& data,
+    std::unordered_map<qint64, Serializable*>& hashmap
+    ) {
+        // id in Serializable is a uintptr_t
+    id = static_cast<qint64>(data["id"].toDouble());
+
+    qint64 startId = static_cast<qint64>(data["start"].toDouble());
+    auto startIt = hashmap.find(startId);
+    if (startIt != hashmap.end()) {
+        setStartSocket(dynamic_cast<Socket*>(startIt->second));
+    } else {
+        setStartSocket(nullptr);
+    }
+
+    qint64 endId = static_cast<qint64>(data["end"].toDouble());
+    auto endIt = hashmap.find(endId);
+    if (endIt != hashmap.end()) {
+        setEndSocket(dynamic_cast<Socket*>(endIt->second));
+    } else {
+        setEndSocket(nullptr);
+    }
+    if(m_startSocket){
+        updatePositions();
+    }
 }

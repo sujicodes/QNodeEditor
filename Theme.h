@@ -48,7 +48,7 @@ public:
 
 private:
     Theme() {
-        initFromJson("/user_data/dev/github/QNodeEditor/styles/main.json");
+        initFromJson("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\styles\\main.json");
     }
 
     void initFromJson(const QString &filePath) {

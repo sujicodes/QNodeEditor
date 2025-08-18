@@ -4,13 +4,13 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include "SocketGraphicsItem.h"
-
+#include "Serializable.h"
 
 
 class Node;
 class Edge;
 
-class Socket {
+class Socket : public Serializable {
 public:
     Socket(Node* node, int index = 0, int position = LEFT_TOP);
 
@@ -29,6 +29,12 @@ public:
 
     bool hasConnectedEdge() const;
     Edge* getConnectedEdge() const;
+
+    QJsonObject serialize() const override;
+    void deserialize(
+        const QJsonObject& data,
+        std::unordered_map<qint64, Serializable*>& hashmap
+        ) override;
 
 private:
     Node* node;

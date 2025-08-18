@@ -9,6 +9,7 @@
 #include "NodeGraphicsItem.h"
 #include "NodeEditorGraphicsView.h"
 #include "NodeGraphicsScene.h"
+#include "Scene.h"
 #include "Socket.h"
 #include "SocketGraphicsItem.h"
 #include "Edge.h"
@@ -56,7 +57,20 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Delete) {
         deleteSelected();
-    } else {
+    }
+    else if ((event->key() == Qt::Key_S) && (event->modifiers() & Qt::ControlModifier)) {
+        if (m_grScene && m_grScene->getScene()) {
+            m_grScene->getScene()->saveToFile("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\graph.json.txt");
+        }
+        event->accept();
+    }
+    else if ((event->key() == Qt::Key_L) && (event->modifiers() & Qt::ControlModifier)) {
+        if (m_grScene && m_grScene->getScene()) {
+            m_grScene->getScene()->loadFromFile("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\graph.json.txt");
+        }
+        event->accept();
+    }
+    else {
         QGraphicsView::keyPressEvent(event);  // call base class
     }
 }
