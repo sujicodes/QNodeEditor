@@ -43,6 +43,7 @@ private:
     void initTitle();
     void initItemWidget();
 
+
 private:
     QGraphicsTextItem *titleItem;
 
@@ -55,6 +56,8 @@ private:
     float edgeSize = 10.0;
     float titleHeight = 24.0;
     float padding = 4.0;
+
+    bool isMoved = false;
 
     Node *node;
 

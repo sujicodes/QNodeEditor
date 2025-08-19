@@ -14,6 +14,7 @@
 #include "SocketGraphicsItem.h"
 #include "Edge.h"
 #include "EdgeGraphicsPathItem.h"
+#include "history.h"
 
 #include <QMouseEvent>
 #include <QGraphicsItem>
@@ -68,6 +69,26 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
         if (m_grScene && m_grScene->getScene()) {
             m_grScene->getScene()->loadFromFile("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\graph.json.txt");
         }
+        event->accept();
+    }
+    else if (event->key() == Qt::Key_Z &&
+         (event->modifiers() & Qt::ControlModifier) &&
+         !(event->modifiers() & Qt::ShiftModifier)) {
+
+        m_grScene->getScene()->getHistory()->undo();
+        event->accept();
+    }
+    else if (event->key() == Qt::Key_Z &&
+         (event->modifiers() & Qt::ControlModifier) &&
+         (event->modifiers() & Qt::ShiftModifier)) {
+
+        m_grScene->getScene()->getHistory()->redo();
+        event->accept();
+    }
+    else if (event->key() == Qt::Key_H) {
+        qDebug() << "HISTORY: len(" << m_grScene->getScene()->getHistory()->getStack().size()
+                 << ") -- current_step" << m_grScene->getScene()->getHistory()->getCurrentStep();
+        qDebug() << m_grScene->getScene()->getHistory()->getStack();
         event->accept();
     }
     else {
@@ -187,6 +208,10 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
         if (edgeDragEnd(item)) return;
     }
 
+    if (dragMode() == QGraphicsView::RubberBandDrag) {
+        m_grScene->getScene()->getHistory()->storeHistory("Selection changed");
+    }
+
     QGraphicsView::mouseReleaseEvent(event);
 }
 
@@ -233,6 +258,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
             dragEdge->getEndSocket()->setConnectedEdge(dragEdge);
 
             dragEdge->updatePositions();
+            m_grScene->getScene()->getHistory()->storeHistory("Created new edge by dragging");
             return true;
             }
     }
@@ -291,4 +317,5 @@ void NodeEditorGraphicsView::deleteSelected() {
             nodeItem->getNode()->remove();
         }
     }
+    m_grScene->getScene()->getHistory()->storeHistory("Delete Selected");
 }

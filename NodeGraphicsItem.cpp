@@ -124,4 +124,14 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsItem::mouseMoveEvent(event);
     node->updateConnectedEdges();
+    isMoved = true;
 }
+
+void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    QGraphicsItem::mouseReleaseEvent(event);
+
+    if(isMoved){
+        isMoved = false;
+        node->getScene()->getHistory->storeHistory("Node moved");
+    }

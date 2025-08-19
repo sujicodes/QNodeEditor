@@ -7,11 +7,13 @@
 #include "Scene.h"
 #include "Edge.h"
 #include "Node.h"
+#include "history.h"
 
 Scene::Scene()
     : sceneWidth(64000), sceneHeight(64000)
 {
     initUI();
+    history = new History(this);
 }
 
 void Scene::initUI()

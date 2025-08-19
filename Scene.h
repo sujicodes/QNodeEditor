@@ -8,7 +8,8 @@
 
 class Node;
 class Edge;
-struct Theme;
+class Theme;
+class History;
 
 class Scene : public Serializable {
 
@@ -21,6 +22,7 @@ public:
     void removeEdge(Edge* edge);
 
     NodeGraphicsScene* graphicsScene() const { return _graphicsScene; }
+    History* getHistory() { return history; };
     void clearScene();
 
     bool loadFromFile(const QString& filename);
@@ -42,6 +44,7 @@ private:
 
     int sceneWidth;
     int sceneHeight;
+    History* history;
 
     NodeGraphicsScene *_graphicsScene;
 };
