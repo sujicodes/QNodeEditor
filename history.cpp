@@ -1,9 +1,14 @@
 #include "history.h"
+#include "Edge.h"
+#include "EdgeGraphicsPathItem.h"
+#include "Node.h"
+#include "NodeGraphicsItem.h"
 #include "Scene.h"
 #include <QDebug>
+#include <qjsonarray.h>
 
 History::History(Scene* scene)
-    : scene(scene), historyCurrentStep(-1), historyLimit(32) {}
+    : scene(scene), historyCurrentStep(-1), historyLimit(100) {}
 
 void History::undo() {
     qDebug() << "UNDO";
@@ -47,21 +52,21 @@ void History::storeHistory(const QString& desc) {
         historyCurrentStep -= 1;
     }
 
-    QString hs = createHistoryStamp(desc);
+    QJsonObject hs = createHistoryStamp(desc);
     historyStack.append(hs);
     historyCurrentStep += 1;
 
     qDebug() << "  -- setting step to:" << historyCurrentStep;
 }
 
-QString History::createHistoryStamp(const QString& desc) {
+QJsonObject History::createHistoryStamp(const QString& desc) {
     // Selection object
     QJsonObject selObj;
     QJsonArray nodeArray;
     QJsonArray edgeArray;
 
     // Iterate over selected items in the scene
-    for (QGraphicsItem* item : scene->getGrScene()->selectedItems()) {
+    for (QGraphicsItem* item : scene->graphicsScene()->selectedItems()) {
         // If item has a Node
         if (auto nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
             if (nodeItem->getNode()) {
@@ -88,6 +93,44 @@ QString History::createHistoryStamp(const QString& desc) {
     return historyStamp;
 }
 
-void History::restoreHistoryStamp(const QString& historyStamp) {
+void History::restoreHistoryStamp(const QJsonObject &historyStamp)
+{
+    // Debug printing
     qDebug() << "RHS:" << historyStamp;
+    qDebug() << "RHS desc:" << historyStamp["desc"].toString();
+
+    // Restore scene from snapshot
+    QJsonObject snapshot = historyStamp["snapshot"].toObject();
+    if (scene) {
+        std::unordered_map<qint64, Serializable*> hashmap = {};
+        scene->deserialize(snapshot, hashmap);
+    }
+
+    // Restore edge selection
+    QJsonArray selEdges = historyStamp["selection"].toObject()["edges"].toArray();
+    for (const QJsonValue& edgeIdVal : selEdges) {
+        qint64 edgeId = edgeIdVal.toVariant().toLongLong();
+        for (Edge* edge : scene->getEdges()) {
+            if (edge->getId() == edgeId) {
+                if (edge->getEdgeGraphicsItem()) {
+                    edge->getEdgeGraphicsItem()->setSelected(true);
+                }
+                break;
+            }
+        }
+    }
+
+    // Restore node selection
+    QJsonArray selNodes = historyStamp["selection"].toObject()["nodes"].toArray();
+    for (const QJsonValue& nodeIdVal : selNodes) {
+        qint64 nodeId = nodeIdVal.toVariant().toLongLong();
+        for (Node* node : scene->getNodes()) {
+            if (node->getId() == nodeId) {
+                if (node->getNodeGraphicsItem()) {
+                    node->getNodeGraphicsItem()->setSelected(true);
+                }
+                break;
+            }
+        }
+    }
 }

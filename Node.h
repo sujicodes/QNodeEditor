@@ -24,6 +24,7 @@ public:
     void addInput(Socket* input);
     void addOutput(Socket* output);
     NodeGraphicsItem* getNodeGraphicsItem() { return grNode; }
+    Scene* getScene() { return scene; }
     void updateConnectedEdges();
     QPointF pos() const;
     void setPos(float x, float y);

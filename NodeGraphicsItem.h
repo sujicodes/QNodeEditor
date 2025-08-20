@@ -17,7 +17,7 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
     void setTitle(const QString &title);
     QString title() const;
@@ -43,9 +43,8 @@ private:
     void initTitle();
     void initItemWidget();
 
-
 private:
-    QGraphicsTextItem *titleItem;
+    QGraphicsTextItem* titleItem;
 
     QString _title;
     QColor _titleColor = Qt::white;

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QVector>
+#include <qjsonobject.h>
 
 class Scene;
 class History
@@ -13,15 +14,15 @@ public:
     void redo();
     void restoreHistory();
     void storeHistory(const QString& desc);
-    QVector<QString> getStack() { return historyStack; }
+    QVector<QJsonObject> getStack() { return historyStack; }
     int getCurrentStep() { return historyCurrentStep; }
 
 private:
-    QString createHistoryStamp(const QString& desc);
-    void restoreHistoryStamp(const QString& historyStamp);
+    QJsonObject createHistoryStamp(const QString& desc);
+    void restoreHistoryStamp(const QJsonObject& historyStamp);
 
     Scene* scene;
-    QVector<QString> historyStack;
+    QVector<QJsonObject> historyStack;
     int historyCurrentStep;
     int historyLimit;
 };

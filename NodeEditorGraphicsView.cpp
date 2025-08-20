@@ -88,7 +88,11 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
     else if (event->key() == Qt::Key_H) {
         qDebug() << "HISTORY: len(" << m_grScene->getScene()->getHistory()->getStack().size()
                  << ") -- current_step" << m_grScene->getScene()->getHistory()->getCurrentStep();
-        qDebug() << m_grScene->getScene()->getHistory()->getStack();
+        int ix = 0;
+        for (const QJsonObject &item : m_grScene->getScene()->getHistory()->getStack()) {
+            qDebug() << "#" << ix << "--" << item["desc"].toString();
+            ix++;
+        }
         event->accept();
     }
     else {

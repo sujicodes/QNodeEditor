@@ -20,9 +20,11 @@ public:
     void addEdge(Edge* edge);
     void removeNode(Node* node);
     void removeEdge(Edge* edge);
+    const QVector<Edge*>& getEdges() const { return edges; }
+    const QVector<Node*>& getNodes() const { return nodes; }
 
     NodeGraphicsScene* graphicsScene() const { return _graphicsScene; }
-    History* getHistory() { return history; };
+    History* getHistory() { return history; }
     void clearScene();
 
     bool loadFromFile(const QString& filename);
@@ -46,7 +48,7 @@ private:
     int sceneHeight;
     History* history;
 
-    NodeGraphicsScene *_graphicsScene;
+    NodeGraphicsScene* _graphicsScene;
 };
 
 #endif // SCENE_H

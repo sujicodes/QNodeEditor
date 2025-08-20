@@ -7,6 +7,8 @@
 #include <QTextEdit>
 
 #include "Node.h"
+#include "Scene.h"
+#include "history.h"
 
 NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -133,5 +135,6 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
     if(isMoved){
         isMoved = false;
-        node->getScene()->getHistory->storeHistory("Node moved");
+        node->getScene()->getHistory()->storeHistory("Node moved");
     }
+}
