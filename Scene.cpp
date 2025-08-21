@@ -85,6 +85,8 @@ void Scene::deserialize(
     clearScene();
     hashmap.clear();
 
+    id = data["id"].toDouble();
+
     // create nodes
     if (data.contains("nodes") && data["nodes"].isArray()) {
         QJsonArray nodesArray = data["nodes"].toArray();

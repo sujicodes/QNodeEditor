@@ -1,34 +1,128 @@
 #include "NodeEditorWindow.h"
+#include "NodeEditorWidget.h"
 #include "NodeEditorGraphicsView.h"
 #include "Scene.h"
-#include "Node.h"
-#include "Edge.h"
+#include "history.h"
+#include <QMenuBar>
+#include <QFileDialog>
+#include <QStatusBar>
+#include <QDebug>
+#include <QFile>
+#include <QGraphicsView>
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
-    : QWidget(parent)
+    : QMainWindow(parent),
+      statusMousePos(nullptr)
 {
+    initUI();
+}
+
+QAction* NodeEditorWindow::createAct(const QString &name,
+                                     const QString &shortcut,
+                                     const QString &tooltip,
+                                     const QObject* receiver,
+                                     const char* member)
+{
+    QAction *act = new QAction(name, this);
+    act->setShortcut(QKeySequence(shortcut));
+    act->setToolTip(tooltip);
+    connect(act, SIGNAL(triggered()), receiver, member);
+    return act;
+}
+
+void NodeEditorWindow::initUI()
+{
+    QMenuBar *menubar = menuBar();
+
+    // File menu
+    QMenu *fileMenu = menubar->addMenu("&File");
+    fileMenu->addAction(createAct("&New", "Ctrl+N", "Create new graph", this, SLOT(onFileNew())));
+    fileMenu->addSeparator();
+    fileMenu->addAction(createAct("&Open", "Ctrl+O", "Open file", this, SLOT(onFileOpen())));
+    fileMenu->addAction(createAct("&Save", "Ctrl+S", "Save file", this, SLOT(onFileSave())));
+    fileMenu->addAction(createAct("Save &As...", "Ctrl+Shift+S", "Save file as...", this, SLOT(onFileSaveAs())));
+    fileMenu->addSeparator();
+    fileMenu->addAction(createAct("E&xit", "Ctrl+Q", "Exit application", this, SLOT(close())));
+
+    // Edit menu
+    QMenu *editMenu = menubar->addMenu("&Edit");
+    editMenu->addAction(createAct("&Undo", "Ctrl+Z", "Undo last operation", this, SLOT(onEditUndo())));
+    editMenu->addAction(createAct("&Redo", "Ctrl+Shift+Z", "Redo last operation", this, SLOT(onEditRedo())));
+    editMenu->addSeparator();
+    editMenu->addAction(createAct("&Delete", "Del", "Delete selected items", this, SLOT(onEditDelete())));
+
+    // Node editor widget
+    nodeEditorWidget = new NodeEditorWidget(this);
+    setCentralWidget(nodeEditorWidget);
+
+    // Status bar
+    statusBar()->showMessage("");
+    statusMousePos = new QLabel("");
+    statusBar()->addPermanentWidget(statusMousePos);
+
+    connect(nodeEditorWidget->getGraphicsView(), &NodeEditorGraphicsView::scenePosChanged, this, &NodeEditorWindow::onScenePosChanged);
+
+    // Window properties
     setGeometry(200, 200, 800, 600);
     setWindowTitle("Node Editor");
+    show();
+}
 
-    layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    scene = new Scene();                  // Scene holds the logic
-    //graphicsScene = scene->graphicsScene();         // Access the QGraphicsScene
-    Node* node1 = new Node(scene, "My Awesome Node 1", {1, 2, 3}, {1});
-    Node* node2 = new Node(scene, "My Awesome Node 2", {1, 2, 3}, {1});
-    Node* node3 = new Node(scene, "My Awesome Node 3", {1, 2, 3}, {1});
+void NodeEditorWindow::onScenePosChanged(int x, int y)
+{
+    statusMousePos->setText(QString("Scene Pos: [%1, %2]").arg(x).arg(y));
+}
 
-    // Set positions
-    node1->setPos(-350, -250);
-    node2->setPos(-75, 0);
-    node3->setPos(200, -150);
+void NodeEditorWindow::onFileNew()
+{
+    nodeEditorWidget->getScene()->clearScene();
+}
 
-    // Create edges between sockets
-    Edge* edge1 = new Edge(scene, node1->outputs[0], node2->inputs[0]);
-    Edge* edge2 = new Edge(scene, node2->outputs[0], node3->inputs[0]);
-    // Create graphics view
-    view = new NodeEditorGraphicsView(scene->graphicsScene(), this);
-    layout->addWidget(view);
+void NodeEditorWindow::onFileOpen()
+{
+    QString fname = QFileDialog::getOpenFileName(this, "Open graph from file");
+    if (fname.isEmpty()) return;
 
-    layout->addWidget(view);
+    QFile file(fname);
+    if (file.exists()) {
+        nodeEditorWidget->getScene()->loadFromFile(fname);
+    }
+}
+
+void NodeEditorWindow::onFileSave()
+{
+    if (filename.isEmpty()) {
+        onFileSaveAs();
+        return;
+    }
+    nodeEditorWidget->getScene()->saveToFile(filename);
+    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(filename));
+}
+
+void NodeEditorWindow::onFileSaveAs()
+{
+    QString fname = QFileDialog::getSaveFileName(this, "Save graph to file");
+    if (fname.isEmpty()) return;
+    filename = fname;
+    onFileSave();
+}
+
+void NodeEditorWindow::onEditUndo()
+{
+    nodeEditorWidget->getScene()->getHistory()->undo();
+}
+
+void NodeEditorWindow::onEditRedo()
+{
+    nodeEditorWidget->getScene()->getHistory()->redo();
+}
+
+void NodeEditorWindow::onEditDelete()
+{
+    auto views = nodeEditorWidget->getScene()->graphicsScene()->views();
+    if (!views.isEmpty()) {
+        auto view = views.first();
+        // Assuming NodeEditorGraphicsView has deleteSelected()
+        QMetaObject::invokeMethod(view, "deleteSelected");
+    }
 }

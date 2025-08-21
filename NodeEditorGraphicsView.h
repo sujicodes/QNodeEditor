@@ -16,6 +16,9 @@ class NodeEditorGraphicsView : public QGraphicsView {
 public:
     NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent = nullptr);
 
+signals:
+    void scenePosChanged(int x, int y);
+
 protected:
     void initUI();
 
@@ -53,6 +56,7 @@ private:
     std::pair<int, int> zoomRange;
 
     QPointF lastLeftClickScenePos;
+    QPointF lastSceneMousePosition;
 
     Edge* dragEdge;
     Edge* previousEdge;

@@ -1,26 +1,42 @@
 #ifndef NODEEDITORWINDOW_H
 #define NODEEDITORWINDOW_H
 
-#include <QWidget>
-#include <QVBoxLayout>
+#include <QMainWindow>
+#include <QAction>
+#include <QLabel>
 
-class NodeGraphicsScene;
-class NodeEditorGraphicsView;
-class Scene;
-class Node;
+class NodeEditorWidget;  // forward declare
 
-class NodeEditorWindow : public QWidget {
+class NodeEditorWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
-    NodeEditorWindow(QWidget *parent = nullptr);
+    explicit NodeEditorWindow(QWidget *parent = nullptr);
+
+private slots:
+    void onScenePosChanged(int x, int y);
+
+    void onFileNew();
+    void onFileOpen();
+    void onFileSave();
+    void onFileSaveAs();
+    void onEditUndo();
+    void onEditRedo();
+    void onEditDelete();
 
 private:
-    QVBoxLayout *layout;
-    NodeEditorGraphicsView *view;
-    NodeGraphicsScene *graphicsScene;
-    Scene *scene;
-    Node *node;
+    QAction* createAct(const QString &name,
+                       const QString &shortcut,
+                       const QString &tooltip,
+                       const QObject* receiver,
+                       const char* member);
+
+    void initUI();
+
+    QString filename;
+    QLabel* statusMousePos;
+    NodeEditorWidget* nodeEditorWidget;
 };
 
 #endif // NODEEDITORWINDOW_H

@@ -56,6 +56,7 @@ void NodeEditorGraphicsView::initUI() {
 
 void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
 {
+    /*
     if (event->key() == Qt::Key_Delete) {
         deleteSelected();
     }
@@ -96,8 +97,8 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
         event->accept();
     }
     else {
+    */
         QGraphicsView::keyPressEvent(event);  // call base class
-    }
 }
 
 void NodeEditorGraphicsView::mousePressEvent(QMouseEvent* event) {
@@ -290,6 +291,11 @@ void NodeEditorGraphicsView::mouseMoveEvent(QMouseEvent* event) {
         dragEdge->getEdgeGraphicsItem()->setDestination(pos);
         dragEdge->getEdgeGraphicsItem()->update();
     }
+    
+    lastSceneMousePosition = mapToScene(event->pos());
+    
+    emit scenePosChanged(static_cast<int>(lastSceneMousePosition.x()),
+                         static_cast<int>(lastSceneMousePosition.y()));
 
     QGraphicsView::mouseMoveEvent(event);
 }
@@ -323,3 +329,5 @@ void NodeEditorGraphicsView::deleteSelected() {
     }
     m_grScene->getScene()->getHistory()->storeHistory("Delete Selected");
 }
+
+
