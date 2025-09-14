@@ -9,6 +9,10 @@
 #include <QDebug>
 #include <QFile>
 #include <QGraphicsView>
+#include <QApplication>
+#include <QClipboard>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -46,8 +50,12 @@ void NodeEditorWindow::initUI()
 
     // Edit menu
     QMenu *editMenu = menubar->addMenu("&Edit");
-    editMenu->addAction(createAct("&Undo", "Ctrl+Z", "Undo last operation", this, SLOT(onEditUndo())));
+    editMenu->addAction(createAct("Cu&t", "Ctrl+X", "Cut to clipboard", this, SLOT(onEditCut())));
+    editMenu->addAction(createAct("&Copy", "Ctrl+C", "Copy to clipboard", this, SLOT(onEditCopy())));
+    editMenu->addAction(createAct("&Paste", "Ctrl+V", "Paste from clipboard", this, SLOT(onEditPaste())));
+    editMenu->addSeparator();
     editMenu->addAction(createAct("&Redo", "Ctrl+Shift+Z", "Redo last operation", this, SLOT(onEditRedo())));
+    editMenu->addAction(createAct("&Undo", "Ctrl+Z", "Undo last operation", this, SLOT(onEditUndo())));
     editMenu->addSeparator();
     editMenu->addAction(createAct("&Delete", "Del", "Delete selected items", this, SLOT(onEditDelete())));
 
@@ -119,10 +127,55 @@ void NodeEditorWindow::onEditRedo()
 
 void NodeEditorWindow::onEditDelete()
 {
-    auto views = nodeEditorWidget->getScene()->graphicsScene()->views();
-    if (!views.isEmpty()) {
-        auto view = views.first();
+    NodeEditorGraphicsView* view = nodeEditorWidget->getGraphicsView();
+    if (view) {
         // Assuming NodeEditorGraphicsView has deleteSelected()
-        QMetaObject::invokeMethod(view, "deleteSelected");
+        view->deleteSelected();
     }
+}
+
+void NodeEditorWindow::onEditCut()
+{
+    QJsonObject data = nodeEditorWidget->getScene()->serializeSelected(true);
+    QJsonDocument doc(data);
+    QString strData = doc.toJson(QJsonDocument::Indented);
+    qWarning() << "copying: "<< strData;
+
+    QApplication::clipboard()->setText(strData);
+}
+
+void NodeEditorWindow::onEditCopy()
+{
+    QJsonObject data = nodeEditorWidget->getScene()->serializeSelected(false);
+    QJsonDocument doc(data);
+    QString strData = doc.toJson(QJsonDocument::Indented);
+
+    QApplication::clipboard()->setText(strData);
+}
+
+void NodeEditorWindow::onEditPaste()
+{
+    QString rawData = QApplication::clipboard()->text();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(rawData.toUtf8(), &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Pasting invalid JSON data!" << parseError.errorString();
+        return;
+    }
+
+    if (!doc.isObject()) {
+        qWarning() << "JSON root is not an object!";
+        return;
+    }
+
+    QJsonObject data = doc.object();
+
+    if (!data.contains("nodes")) {
+        qWarning() << "JSON does not contain any nodes!";
+        return;
+    }
+
+    nodeEditorWidget->getScene()->deserializeFromClipboard(data);
 }

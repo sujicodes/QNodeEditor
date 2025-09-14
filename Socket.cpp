@@ -49,7 +49,8 @@ QJsonObject Socket::serialize() const {
 
 void Socket::deserialize(
     const QJsonObject& data,
-    std::unordered_map<qint64, Serializable*>& hashmap
+    std::unordered_map<qint64, Serializable*>& hashmap,
+    bool restoreId
     ) {
 
     id = data["id"].toDouble();   // or .toVariant().toLongLong()

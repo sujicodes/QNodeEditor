@@ -1,4 +1,3 @@
-#include "Edge.h"
 
 #include "Edge.h"
 #include "DirectEdgeGraphicsPathItem.h"
@@ -105,10 +104,13 @@ QJsonObject Edge::serialize() const {
 
 void Edge::deserialize(
     const QJsonObject& data,
-    std::unordered_map<qint64, Serializable*>& hashmap
+    std::unordered_map<qint64, Serializable*>& hashmap,
+    bool restoreId
     ) {
-        // id in Serializable is a uintptr_t
-    id = static_cast<qint64>(data["id"].toDouble());
+    if (restoreId) {
+        // Set ID and add to hashmap
+        id = static_cast<qint64>(data["id"].toDouble());
+    }
 
     qint64 startId = static_cast<qint64>(data["start"].toDouble());
     auto startIt = hashmap.find(startId);

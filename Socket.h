@@ -33,7 +33,8 @@ public:
     QJsonObject serialize() const override;
     void deserialize(
         const QJsonObject& data,
-        std::unordered_map<qint64, Serializable*>& hashmap
+        std::unordered_map<qint64, Serializable*>& hashmap,
+        bool restoreId = true        
         ) override;
 
 private:

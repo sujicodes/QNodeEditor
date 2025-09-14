@@ -3,10 +3,15 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
+#include <QtWidgets/qgraphicsview.h>
 
 #include "Scene.h"
 #include "Edge.h"
+#include "EdgeGraphicsPathItem.h"
 #include "Node.h"
+#include "NodeEditorGraphicsView.h"
+#include "NodeGraphicsItem.h"
+#include "Socket.h"
 #include "history.h"
 
 Scene::Scene()
@@ -78,14 +83,18 @@ QJsonObject Scene::serialize() const {
 }
 void Scene::deserialize(
     const QJsonObject& data,
-    std::unordered_map<qint64, Serializable*>& hashmap
+    std::unordered_map<qint64, Serializable*>& hashmap,
+    bool restoreId
     ) {
     qDebug() << "Deserializing data:" << QJsonDocument(data).toJson(QJsonDocument::Indented);
 
     clearScene();
     hashmap.clear();
 
-    id = data["id"].toDouble();
+    if (restoreId) {
+        // Set ID and add to hashmap
+        id = static_cast<qint64>(data["id"].toDouble());
+    }
 
     // create nodes
     if (data.contains("nodes") && data["nodes"].isArray()) {
@@ -94,7 +103,7 @@ void Scene::deserialize(
             if (nodeVal.isObject()) {
                 QJsonObject nodeObj = nodeVal.toObject();
                 Node* node = new Node(this);       // Node constructor takes Scene*
-                node->deserialize(nodeObj, hashmap);
+                node->deserialize(nodeObj, hashmap, restoreId);
                 nodes.push_back(node);             // keep track of it in Scene
             }
         }
@@ -107,7 +116,7 @@ void Scene::deserialize(
             if (edgeVal.isObject()) {
                 QJsonObject edgeObj = edgeVal.toObject();
                 Edge* edge = new Edge(this);       // Edge constructor takes Scene*
-                edge->deserialize(edgeObj, hashmap);
+                edge->deserialize(edgeObj, hashmap, restoreId);
                 edges.push_back(edge);             // keep track of it in Scene
             }
         }
@@ -159,3 +168,132 @@ bool Scene::loadFromFile(const QString& filename)
     deserialize(doc.object(), hashmap);
     return true;
 }
+
+QJsonObject Scene::serializeSelected(bool del)
+{
+    if ( !graphicsScene()) return QJsonObject();
+
+    qDebug() << "-- COPY TO CLIPBOARD ---";
+
+    QJsonArray selNodes;
+    QList<Edge*> selEdges;
+    QMap<int, Socket*> selSockets;
+
+    // --- sort edges and nodes ---
+    for (QGraphicsItem* item : graphicsScene()->selectedItems()) {
+        // Node?
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item)){
+            selNodes.append(nodeItem->getNode()->serialize());
+
+            for (Socket* socket : nodeItem->getNode()->inputs) {
+                selSockets[socket->getId()] = socket;
+            }
+            for (Socket* socket : nodeItem->getNode()->outputs) {
+                selSockets[socket->getId()] = socket;
+            }
+        }
+        // Edge?
+        else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
+            selEdges.append(edgeItem->getEdge());
+        }
+    }
+
+        qWarning() << "  NODES:" << selNodes;
+        qWarning() << "  EDGES count:" << selEdges.size();
+        qWarning() << "  SOCKETS count:" << selSockets.size();
+
+    // --- remove invalid edges ---
+    QList<Edge*> edgesToRemove;
+    for (Edge* edge : selEdges) {
+        if (!(selSockets.contains(edge->getStartSocket()->getId()) &&
+              selSockets.contains(edge->getEndSocket()->getId()))) {
+            qDebug() << "edge" << edge << "is not connected with both sides";
+            edgesToRemove.append(edge);
+        }
+    }
+    for (Edge* e : edgesToRemove) {
+        selEdges.removeAll(e);
+    }
+
+    // --- finalize edges ---
+    QJsonArray edgesFinal;
+    for (Edge* edge : selEdges) {
+        edgesFinal.append(edge->serialize());
+    }
+
+    qDebug() << "our final edge list:" << edgesFinal;
+
+    // --- assemble final data ---
+    QJsonObject data;
+    data["nodes"] = selNodes;
+    data["edges"] = edgesFinal;
+
+    // --- handle CUT ---
+    if (del) {
+            auto* view = dynamic_cast<NodeEditorGraphicsView*>(graphicsScene()->views().first());
+            view->deleteSelected();
+        }
+    this->getHistory()->storeHistory("Cut out elements from scene");
+
+    return data;
+}
+
+void Scene::deserializeFromClipboard(const QJsonObject &data)
+{
+    std::unordered_map<qint64, Serializable*> hashmap = {};
+
+    // --- calculate mouse pointer - scene position ---
+    NodeEditorGraphicsView* view = dynamic_cast<NodeEditorGraphicsView*>(graphicsScene()->views().first());
+    QPointF mouseScenePos = view->getLastSceneMousePosition();
+
+    // --- calculate selected objects bbox and center ---
+    double minx = std::numeric_limits<double>::max();
+    double maxx = std::numeric_limits<double>::lowest();
+    double miny = std::numeric_limits<double>::max();
+    double maxy = std::numeric_limits<double>::lowest();
+
+    QJsonArray nodesArray = data["nodes"].toArray();
+    for (const QJsonValue &val : nodesArray) {
+        QJsonObject nodeData = val.toObject();
+        double x = nodeData["pos_x"].toDouble();
+        double y = nodeData["pos_y"].toDouble();
+
+        if (x < minx) minx = x;
+        if (x > maxx) maxx = x;
+        if (y < miny) miny = y;
+        if (y > maxy) maxy = y;
+    }
+
+    double bboxCenterX = (minx + maxx) / 2.0;
+    double bboxCenterY = (miny + maxy) / 2.0;
+
+    // --- calculate offset of newly created nodes ---
+    double offsetX = mouseScenePos.x() - bboxCenterX;
+    double offsetY = mouseScenePos.y() - bboxCenterY;
+
+    // --- create each node ---
+    for (const QJsonValue &val : nodesArray) {
+        QJsonObject nodeData = val.toObject();
+
+        Node *newNode = new Node(this);
+        newNode->deserialize(nodeData, hashmap, /*restoreId=*/false);
+
+        QPointF pos = newNode->pos();
+        newNode->setPos(pos.x() + offsetX, pos.y() + offsetY);
+    }
+
+    // --- create each edge ---
+    if (data.contains("edges")) {
+        QJsonArray edgesArray = data["edges"].toArray();
+        for (const QJsonValue &val : edgesArray) {
+            QJsonObject edgeData = val.toObject();
+
+            Edge *newEdge = new Edge(this);
+            newEdge->deserialize(edgeData, hashmap, /*restoreId=*/false);
+        }
+    }
+
+    // --- store history ---
+    getHistory()->storeHistory("Pasted elements in scene");
+}
+

@@ -18,8 +18,8 @@ public:
 
     virtual void deserialize(
         const QJsonObject & data,
-        std::unordered_map<qint64, Serializable*>& hashmap
-
+        std::unordered_map<qint64, Serializable*>& hashmap,
+        bool restoreId = true
         ) = 0;
 
     qint64 getId() const { return id; }

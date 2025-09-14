@@ -21,6 +21,9 @@ private slots:
     void onFileOpen();
     void onFileSave();
     void onFileSaveAs();
+    void onEditCut();
+    void onEditCopy();
+    void onEditPaste();
     void onEditUndo();
     void onEditRedo();
     void onEditDelete();

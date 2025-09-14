@@ -15,6 +15,8 @@ class NodeEditorGraphicsView : public QGraphicsView {
 
 public:
     NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent = nullptr);
+    void deleteSelected();
+    QPointF getLastSceneMousePosition() const { return lastSceneMousePosition;}
 
 signals:
     void scenePosChanged(int x, int y);
@@ -39,7 +41,6 @@ protected:
     void edgeDragStart(SocketGraphicsItem* item);
     bool edgeDragEnd(QGraphicsItem* item);
     bool distanceBetweenClickAndReleaseIsOff(QMouseEvent* event);
-    void deleteSelected();
 
 private:
     static const int MODE_NOOP = 1;

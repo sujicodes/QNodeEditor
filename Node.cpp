@@ -145,11 +145,14 @@ QJsonObject Node::serialize() const {
 
 void Node::deserialize(
     const QJsonObject& data,
-    std::unordered_map<qint64, Serializable*>& hashmap
+    std::unordered_map<qint64, Serializable*>& hashmap,
+    bool restoreId
     ) {
-    // Set ID and add to hashmap
-    id = static_cast<qint64>(data["id"].toDouble());
-
+    
+    if (restoreId) {
+        // Set ID and add to hashmap
+        id = static_cast<qint64>(data["id"].toDouble());
+    }
     // Position
     setPos(data["pos_x"].toDouble(), data["pos_y"].toDouble());
 
@@ -174,7 +177,7 @@ void Node::deserialize(
         auto* newSocket = new Socket(this,
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
-        newSocket->deserialize(socketData, hashmap);
+        newSocket->deserialize(socketData, hashmap, restoreId);
         inputs.push_back(newSocket);
     }
 
@@ -196,7 +199,7 @@ void Node::deserialize(
         auto* newSocket = new Socket(this,
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
-        newSocket->deserialize(socketData, hashmap);
+        newSocket->deserialize(socketData, hashmap, restoreId);
         outputs.push_back(newSocket);
     }
 }

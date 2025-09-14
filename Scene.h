@@ -24,7 +24,7 @@ public:
     const QVector<Node*>& getNodes() const { return nodes; }
 
     NodeGraphicsScene* graphicsScene() const { return _graphicsScene; }
-    History* getHistory() { return history; }
+    History*  getHistory() const { return history; }
     void clearScene();
 
     bool loadFromFile(const QString& filename);
@@ -33,9 +33,12 @@ public:
     QJsonObject serialize() const override;
     void deserialize(
         const QJsonObject& data,
-        std::unordered_map<qint64, Serializable*>& hashmap
-
+        std::unordered_map<qint64, Serializable*>& hashmap,
+        bool restoreId = true
     ) override;
+
+    QJsonObject serializeSelected(bool del = true);
+    void deserializeFromClipboard(const QJsonObject& data);
     
 
 private:
