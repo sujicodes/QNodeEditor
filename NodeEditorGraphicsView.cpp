@@ -15,10 +15,12 @@
 #include "Edge.h"
 #include "EdgeGraphicsPathItem.h"
 #include "history.h"
+#include "UndoCommands.h"
 
 #include <QMouseEvent>
 #include <QGraphicsItem>
 #include <QDebug>
+#include <QList>
 
 QString debug_modifiers(QInputEvent* event)
 {
@@ -214,7 +216,16 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
     }
 
     if (dragMode() == QGraphicsView::RubberBandDrag) {
-        m_grScene->getScene()->getHistory()->storeHistory("Selection changed");
+        QList<QGraphicsItem*> selection;
+        for (QGraphicsItem* item : m_grScene->selectedItems()) {
+            selection.append(item);
+        }
+        m_grScene->getScene()->getHistory()->push(
+            new SelectionChangedCommand(m_grScene->getScene(), previousSelection, selection)
+        );
+
+        previousSelection = selection;
+
     }
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -249,28 +260,41 @@ void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
 }
 
 bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
-    mode = MODE_NOOP;
+     mode = MODE_NOOP;
     qDebug() << "Edge Drag END";
+
     if (auto endSocketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
         if (endSocketItem->getSocket() != lastStartSocket) {
-            if (endSocketItem->getSocket()->hasConnectedEdge()) endSocketItem->getSocket()->getConnectedEdge()->remove();
-            if (previousEdge) previousEdge->remove();
 
-            dragEdge->setStartSocket(lastStartSocket);
-            dragEdge->setEndSocket(endSocketItem->getSocket());
+            // capture what needs to be removed
+            Edge* conflictingEdge = nullptr;
+            if (endSocketItem->getSocket()->hasConnectedEdge())
+                conflictingEdge = endSocketItem->getSocket()->getConnectedEdge();
 
-            dragEdge->getStartSocket()->setConnectedEdge(dragEdge);
-            dragEdge->getEndSocket()->setConnectedEdge(dragEdge);
+            Edge* prevEdge = previousEdge; // saved in dragStart
 
-            dragEdge->updatePositions();
-            m_grScene->getScene()->getHistory()->storeHistory("Created new edge by dragging");
+            // Push proper undo command that owns this edge + conflicts
+            m_grScene->getScene()->getHistory()->push(
+                new CreateEdgeCommand(m_grScene->getScene(),
+                                      dragEdge,
+                                      lastStartSocket,
+                                      endSocketItem->getSocket(),
+                                      prevEdge,
+                                      conflictingEdge)
+            );
+
+            dragEdge = nullptr; // ownership now inside command
             return true;
-            }
+        }
     }
 
-    dragEdge->remove();
-    dragEdge = nullptr;
+    // cancel preview edge if invalid
+    if (dragEdge) {
+        dragEdge->remove();
+        dragEdge = nullptr;
+    }
 
+    // restore previousEdge if drag failed
     if (previousEdge) {
         previousEdge->getStartSocket()->setConnectedEdge(previousEdge);
     }
@@ -318,16 +342,14 @@ void NodeEditorGraphicsView::wheelEvent(QWheelEvent* event) {
 
 void NodeEditorGraphicsView::deleteSelected() {
 
-    for (QGraphicsItem* item : m_grScene->selectedItems())  // grScene is your QGraphicsScene*
-    {
-        if (auto edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
-            edgeItem->getEdge()->remove();
-        }
-        else if (auto nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
-            nodeItem->getNode()->remove();
-        }
-    }
-    m_grScene->getScene()->getHistory()->storeHistory("Delete Selected");
+    QList<QGraphicsItem*> selected = m_grScene->selectedItems();
+    if (selected.isEmpty()) return;
+
+    m_grScene->getScene()->getHistory()->push(
+        new DeleteSelectedCommand(m_grScene->getScene(), selected)
+    );
 }
+
+
 
 

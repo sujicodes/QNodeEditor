@@ -77,7 +77,6 @@ void Edge::remove() {
     if (scene && grEdge) {
         scene->graphicsScene()->removeItem(grEdge);
     }
-    delete grEdge;
     grEdge = nullptr;
     if (scene) scene->removeEdge(this);
 }

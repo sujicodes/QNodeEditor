@@ -9,6 +9,7 @@
 #include "Node.h"
 #include "Scene.h"
 #include "history.h"
+#include "UndoCommands.h"
 
 NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -132,9 +133,17 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
-
+    
     if(isMoved){
-        isMoved = false;
-        node->getScene()->getHistory()->storeHistory("Node moved");
+        QGraphicsItem::mouseReleaseEvent(event);
+
+    QPointF endPos = pos();
+    if (startPos == endPos) {
+        return;
+    }
+    //node->getScene()->getHistory()->push(
+    //    new MoveNodeCommand(node, startPos, endPos)
+    //);
+
     }
 }

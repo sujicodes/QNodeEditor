@@ -62,6 +62,7 @@ private:
     Edge* dragEdge;
     Edge* previousEdge;
     Socket* lastStartSocket;
+    QList<QGraphicsItem*> previousSelection;
 };
 
 #endif // NODEEDITORGRAPHICSVIEW_H

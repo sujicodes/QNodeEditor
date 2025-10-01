@@ -56,6 +56,8 @@ private:
     float titleHeight = 24.0;
     float padding = 4.0;
 
+    QPointF startPos;
+
     bool isMoved = false;
 
     Node *node;
