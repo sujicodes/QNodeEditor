@@ -98,6 +98,7 @@ void Scene::deserialize(
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
+        hashmap[id] = this;
     }
 
     // create nodes
@@ -235,7 +236,7 @@ QJsonObject Scene::serializeSelected(bool del)
     // --- handle CUT ---
     if (del) {
             getHistory()->push(
-                new CutCommand(this, data)
+                new CutCommand(this, data, graphicsScene()->selectedItems())
             );
         }
     return data;
@@ -246,5 +247,19 @@ void Scene::deserializeFromClipboard(const QJsonObject &data)
     getHistory()->push(
             new PasteCommand(this, data)
         );
+}
+
+Node* Scene::getNodeById(qint64 id) const {
+    for (Node* n : nodes) {            // adjust the container name if yours differs
+        if (n && n->getId() == id) return n;
+    }
+    return nullptr;
+}
+
+Edge* Scene::getEdgeById(qint64 id) const {
+    for (Edge* e : edges) {           // adjust the container name if yours differs
+        if (e && e->getId() == id) return e;
+    }
+    return nullptr;
 }
 

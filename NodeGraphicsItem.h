@@ -18,7 +18,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void setTitle(const QString &title);
     QString title() const;
     QWidget* itemWidget;

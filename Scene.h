@@ -40,6 +40,9 @@ public:
 
     QJsonObject serializeSelected(bool del = true);
     void deserializeFromClipboard(const QJsonObject& data);
+
+    Node* getNodeById(qint64 id) const;
+    Edge* getEdgeById(qint64 id) const;
     
 
 private:

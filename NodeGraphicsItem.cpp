@@ -130,6 +130,11 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     isMoved = true;
 }
 
+void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    startPos = pos();
+}
+
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
@@ -138,12 +143,11 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         QGraphicsItem::mouseReleaseEvent(event);
 
     QPointF endPos = pos();
-    if (startPos == endPos) {
-        return;
-    }
-    //node->getScene()->getHistory()->push(
-    //    new MoveNodeCommand(node, startPos, endPos)
-    //);
+    if (startPos == endPos) return;
+
+    node->getScene()->getHistory()->push(
+        new MoveNodeCommand(node, startPos, endPos)
+    );
 
     }
 }

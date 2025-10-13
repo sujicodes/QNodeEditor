@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include <limits>
+#include <QPointer>
 
 #include "Scene.h"
 #include "Socket.h"
@@ -30,34 +31,39 @@ public:
                             const QList<QGraphicsItem*> &newSel,
                             QUndoCommand *parent = nullptr)
         : QUndoCommand("Selection Changed", parent),
-          m_scene(scene),
-          m_oldSelection(oldSel),
-          m_newSelection(newSel) {}
-
-    void undo() override {
-        setSelection(m_oldSelection);
+        m_scene(scene)
+    {
+        for (auto *item : oldSel)
+            m_oldSel.insert(item);
+        for (auto *item : newSel)
+            m_newSel.insert(item);
     }
 
-    void redo() override {
-        setSelection(m_newSelection);
-    }
+    void undo() override { applySelection(m_oldSel); }
+    void redo() override { applySelection(m_newSel); }
 
 private:
-    void setSelection(const QList<QGraphicsItem*> &items) {
-        // clear existing selection
-        for (auto *item : m_scene->graphicsScene()->selectedItems()) {
-            item->setSelected(false);
-        }
-        // reapply
-        for (auto *item : items) {
+    void applySelection(const QSet<QGraphicsItem*> &selection) {
+        if (!m_scene) return;
+        auto *gscene = m_scene->graphicsScene();
+        if (!gscene) return;
+
+        gscene->blockSignals(true);
+        gscene->clearSelection();
+
+        for (auto *item : selection) {
+            if (item && !item->scene()) continue; // skip deleted
             item->setSelected(true);
         }
+
+        gscene->blockSignals(false);
     }
 
-    Scene *m_scene;
-    QList<QGraphicsItem*> m_oldSelection;
-    QList<QGraphicsItem*> m_newSelection;
+    Scene *m_scene = nullptr;
+    QSet<QGraphicsItem*> m_oldSel;
+    QSet<QGraphicsItem*> m_newSel;
 };
+
 
 // --------------------------------------
 // Create Edge
@@ -95,6 +101,12 @@ public:
         if (!m_edge) {
             m_edge = new Edge(m_scene);
             std::unordered_map<qint64, Serializable*> hashmap;
+            for (Node* node : m_scene->getNodes()) {
+                for (Socket* sock : node->inputs)
+                    hashmap[sock->getId()] = sock;
+                for (Socket* sock : node->outputs)
+                    hashmap[sock->getId()] = sock;
+            }
             m_edge->deserialize(m_serializedEdge, hashmap, true);
             return;
         }
@@ -111,8 +123,15 @@ public:
             m_edge = nullptr;
         }
 
-        // Restore any edges that were removed
         std::unordered_map<qint64, Serializable*> hashmap;
+        for (Node* node : m_scene->getNodes()) {
+            for (Socket* sock : node->inputs)
+                hashmap[sock->getId()] = sock;
+            for (Socket* sock : node->outputs)
+                hashmap[sock->getId()] = sock;
+        }
+        // Restore any edges that were removed
+
         if (!m_serializedPrev.isEmpty()) {
             m_previousEdge = new Edge(m_scene);
             m_previousEdge->deserialize(m_serializedPrev, hashmap, true);
@@ -143,16 +162,16 @@ class PasteCommand : public QUndoCommand {
 public:
     PasteCommand(Scene* scene, const QJsonObject& data, QUndoCommand* parent = nullptr)
         : QUndoCommand("Paste elements in scene", parent),
-          scene(scene), data(data) {}
+        scene(scene), data(data), firstExecution(true) {}
 
     void undo() override {
         for (Node* node : pastedNodes) {
-            scene->removeNode(node);
+            if (node) node->remove();
         }
         pastedNodes.clear();
 
         for (Edge* edge : pastedEdges) {
-            scene->removeEdge(edge);
+            if (edge) edge->remove();
         }
         pastedEdges.clear();
     }
@@ -160,52 +179,79 @@ public:
     void redo() override {
         std::unordered_map<qint64, Serializable*> hashmap;
 
-        NodeEditorGraphicsView* view =
-            dynamic_cast<NodeEditorGraphicsView*>(scene->graphicsScene()->views().first());
-        QPointF mouseScenePos = view->getLastSceneMousePosition();
+        // Compute paste offset *only on the first execution*
+        if (firstExecution) {
+            NodeEditorGraphicsView* view =
+                dynamic_cast<NodeEditorGraphicsView*>(scene->graphicsScene()->views().first());
+            pasteCenter = view->getLastSceneMousePosition();
 
-        // bbox
-        double minx = std::numeric_limits<double>::max();
-        double maxx = std::numeric_limits<double>::lowest();
-        double miny = std::numeric_limits<double>::max();
-        double maxy = std::numeric_limits<double>::lowest();
+            // Calculate bbox of original nodes
+            double minx = std::numeric_limits<double>::max();
+            double maxx = std::numeric_limits<double>::lowest();
+            double miny = std::numeric_limits<double>::max();
+            double maxy = std::numeric_limits<double>::lowest();
 
+            QJsonArray nodesArray = data["nodes"].toArray();
+            for (auto val : nodesArray) {
+                QJsonObject nodeData = val.toObject();
+                double x = nodeData["pos_x"].toDouble();
+                double y = nodeData["pos_y"].toDouble();
+                minx = std::min(minx, x);
+                maxx = std::max(maxx, x);
+                miny = std::min(miny, y);
+                maxy = std::max(maxy, y);
+            }
+
+            originalCenter = QPointF((minx + maxx) / 2.0, (miny + maxy) / 2.0);
+        }
+
+        // Paste nodes at either the original offset (first time) or the saved absolute positions
         QJsonArray nodesArray = data["nodes"].toArray();
         for (auto val : nodesArray) {
             QJsonObject nodeData = val.toObject();
-            double x = nodeData["pos_x"].toDouble();
-            double y = nodeData["pos_y"].toDouble();
-            minx = std::min(minx, x);
-            maxx = std::max(maxx, x);
-            miny = std::min(miny, y);
-            maxy = std::max(maxy, y);
-        }
-
-        double offsetX = mouseScenePos.x() - (minx + maxx) / 2.0;
-        double offsetY = mouseScenePos.y() - (miny + maxy) / 2.0;
-
-        // create nodes
-        for (auto val : nodesArray) {
-            QJsonObject nodeData = val.toObject();
             Node* newNode = new Node(scene);
+            // restore id when node is pasted
             newNode->deserialize(nodeData, hashmap, false);
-            QPointF pos = newNode->pos();
-            newNode->setPos(pos.x() + offsetX, pos.y() + offsetY);
-            pastedNodes.push_back(newNode);
+
+            QPointF originalPos = newNode->pos();
+
+            QPointF finalPos;
+            if (firstExecution) {
+                // Offset by mouse-based paste center
+                QPointF offset = pasteCenter - originalCenter;
+                finalPos = originalPos + offset;
+
+                // Save relative offset for redo
+                relativeOffsets.push_back(finalPos - pasteCenter);
+            } else {
+                // Recreate same layout based on stored relative offsets
+                if (offsetIndex < relativeOffsets.size())
+                    finalPos = pasteCenter + relativeOffsets[offsetIndex];
+                else
+                    finalPos = pasteCenter; // fallback
+            }
+
+            newNode->setPos(finalPos.x(), finalPos.y());
             scene->addNode(newNode);
+            pastedNodes.push_back(newNode);
+            offsetIndex++;
         }
 
-        // create edges
+        offsetIndex = 0; // reset for next redo/undo cycle
+
+        // Create edges
         if (data.contains("edges")) {
             QJsonArray edgesArray = data["edges"].toArray();
             for (auto val : edgesArray) {
                 QJsonObject edgeData = val.toObject();
                 Edge* newEdge = new Edge(scene);
                 newEdge->deserialize(edgeData, hashmap, false);
-                pastedEdges.push_back(newEdge);
                 scene->addEdge(newEdge);
+                pastedEdges.push_back(newEdge);
             }
         }
+
+        firstExecution = false;
     }
 
 private:
@@ -213,6 +259,12 @@ private:
     QJsonObject data;
     std::vector<Node*> pastedNodes;
     std::vector<Edge*> pastedEdges;
+
+    bool firstExecution;
+    QPointF pasteCenter;
+    QPointF originalCenter;
+    std::vector<QPointF> relativeOffsets;
+    size_t offsetIndex = 0;
 };
 
 // --------------------------------------
@@ -220,9 +272,31 @@ private:
 // --------------------------------------
 class CutCommand : public QUndoCommand {
 public:
-    CutCommand(Scene* scene, const QJsonObject& cutData, QUndoCommand* parent = nullptr)
+    CutCommand(Scene* scene, const QJsonObject& cutData, const QList<QGraphicsItem*>& selected, QUndoCommand* parent = nullptr)
         : QUndoCommand("Cut elements from scene", parent),
-          scene(scene), data(cutData) {}
+          scene(scene), data(cutData)
+    {
+        for (QGraphicsItem* item : selected) {
+            if (auto edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
+                Edge* edge = edgeItem->getEdge();
+                if (edge) {
+                    m_edges.append(edge);
+                }
+            } else if (auto nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+                Node* node = nodeItem->getNode();
+                if (node) {
+                    m_nodes.append(node);
+                    // if edges arnt selected
+                    for( Edge* edge :node->getConnectedEdges()){
+                        if(m_edges.contains(edge)){
+                            continue;
+                        }
+                        m_edges.append(edge);
+                    }
+                }
+            }
+        }
+    }
 
     void undo() override {
         // same logic as PasteCommand::redo
@@ -232,6 +306,7 @@ public:
         for (auto val : nodesArray) {
             QJsonObject nodeData = val.toObject();
             Node* newNode = new Node(scene);
+            m_nodes.append(newNode);
             newNode->deserialize(nodeData, hashmap, true);
             scene->addNode(newNode);
         }
@@ -241,6 +316,7 @@ public:
             for (auto val : edgesArray) {
                 QJsonObject edgeData = val.toObject();
                 Edge* newEdge = new Edge(scene);
+                m_edges.append(newEdge);
                 newEdge->deserialize(edgeData, hashmap, true);
                 scene->addEdge(newEdge);
             }
@@ -248,13 +324,21 @@ public:
     }
 
     void redo() override {
-        auto* view = dynamic_cast<NodeEditorGraphicsView*>(scene->graphicsScene()->views().first());
-        view->deleteSelected();
+        for (Node* node : m_nodes) {
+            if (node) node->remove();
+        }
+        for (Edge* edge : m_edges) {
+            if (edge) edge->remove();
+        }
+        m_nodes.clear();
+        m_edges.clear();
     }
 
 private:
     Scene* scene;
     QJsonObject data;
+    QList<Node*> m_nodes;
+    QList<Edge*> m_edges;
 };
 
 // --------------------------------------
@@ -296,7 +380,7 @@ class DeleteSelectedCommand : public QUndoCommand {
 public:
     DeleteSelectedCommand(Scene* scene, const QList<QGraphicsItem*>& selected,
                           QUndoCommand* parent = nullptr)
-        : QUndoCommand("Delete Selected", parent), m_scene(scene) 
+        : QUndoCommand("Delete Selected", parent), m_scene(scene)
     {
         for (QGraphicsItem* item : selected) {
             if (auto edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
@@ -310,6 +394,14 @@ public:
                 if (node) {
                     m_nodes.append(node);
                     m_serializedNodes.append(node->serialize());
+                    // if edges arnt selected
+                    for( Edge* edge :node->getConnectedEdges()){
+                        if(m_edges.contains(edge)){
+                            continue;
+                        }
+                        m_edges.append(edge);
+                        m_serializedEdges.append(edge->serialize());
+                    }
                 }
             }
         }
@@ -318,13 +410,21 @@ public:
     void undo() override {
         if (!m_scene) return;
         std::unordered_map<qint64, Serializable*> hashmap;
+        for (Node* node : m_scene->getNodes()) {
+            for (Socket* sock : node->inputs)
+                hashmap[sock->getId()] = sock;
+            for (Socket* sock : node->outputs)
+                hashmap[sock->getId()] = sock;
+        }
 
         for (const QJsonObject& nodeData : m_serializedNodes) {
             Node* node = new Node(m_scene);
+            m_nodes.append(node);
             node->deserialize(nodeData, hashmap, true);
         }
         for (const QJsonObject& edgeData : m_serializedEdges) {
             Edge* edge = new Edge(m_scene);
+            m_edges.append(edge);
             edge->deserialize(edgeData, hashmap, true);
         }
     }

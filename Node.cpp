@@ -30,6 +30,11 @@ Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const
     }
 }
 
+Node::~Node() {
+    remove();
+}
+
+
 void Node::setTitle(const QString &value) {
     m_title = value;
     grNode->setTitle(value);
@@ -86,6 +91,30 @@ void Node::updateConnectedEdges()
         }
     }
 }
+
+QList<Edge*> Node::getConnectedEdges(){
+
+    QList<Edge*> edges;
+
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        Socket* socket = inputs.at(i);
+        if (socket->hasConnectedEdge()) {
+            edges.append(socket->getConnectedEdge());
+        }
+    }
+
+    for (size_t i = 0; i < outputs.size(); ++i) {
+        Socket* socket = outputs.at(i);
+        if (!socket) {
+            continue;
+        }
+        if (socket->hasConnectedEdge()) {
+            edges.append(socket->getConnectedEdge());
+        }
+    }
+    return edges;
+}
+
 
 void Node::remove() {
     qDebug() << "> Removing Node" << this;
@@ -152,6 +181,7 @@ void Node::deserialize(
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
+        hashmap[id] = this;
     }
     // Position
     setPos(data["pos_x"].toDouble(), data["pos_y"].toDouble());

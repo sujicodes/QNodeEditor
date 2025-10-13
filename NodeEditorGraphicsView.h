@@ -41,6 +41,7 @@ protected:
     void edgeDragStart(SocketGraphicsItem* item);
     bool edgeDragEnd(QGraphicsItem* item);
     bool distanceBetweenClickAndReleaseIsOff(QMouseEvent* event);
+    void onSelectionChanged();
 
 private:
     static const int MODE_NOOP = 1;

@@ -42,6 +42,8 @@ NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidg
 {
     initUI();
     setScene(m_grScene);
+    connect(m_grScene, &QGraphicsScene::selectionChanged,
+            this, &NodeEditorGraphicsView::onSelectionChanged);
 }
 
 void NodeEditorGraphicsView::initUI() {
@@ -215,19 +217,6 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
         if (edgeDragEnd(item)) return;
     }
 
-    if (dragMode() == QGraphicsView::RubberBandDrag) {
-        QList<QGraphicsItem*> selection;
-        for (QGraphicsItem* item : m_grScene->selectedItems()) {
-            selection.append(item);
-        }
-        m_grScene->getScene()->getHistory()->push(
-            new SelectionChangedCommand(m_grScene->getScene(), previousSelection, selection)
-        );
-
-        previousSelection = selection;
-
-    }
-
     QGraphicsView::mouseReleaseEvent(event);
 }
 
@@ -350,6 +339,30 @@ void NodeEditorGraphicsView::deleteSelected() {
     );
 }
 
+QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {
+    QList<qint64> ids;
+    for (QGraphicsItem* item : items) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item))
+            ids.append(nodeItem->getNode()->getId());
+        else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item))
+            ids.append(edgeItem->getEdge()->getId());
+    }
+    return ids;
+}
 
+void NodeEditorGraphicsView::onSelectionChanged()
+{
+    QList<QGraphicsItem*> newSelection = m_grScene->selectedItems();
+
+    if (newSelection != previousSelection) {
+        m_grScene->getScene()->getHistory()->push(
+            new SelectionChangedCommand(m_grScene->getScene(),
+                                        previousSelection,
+                                        newSelection)
+            );
+        previousSelection = newSelection;
+    }
+
+}
 
 
