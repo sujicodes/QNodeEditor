@@ -19,6 +19,7 @@ public:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+
     void setTitle(const QString &title);
     QString title() const;
     QWidget* itemWidget;

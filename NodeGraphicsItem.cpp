@@ -146,7 +146,7 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (startPos == endPos) return;
 
     node->getScene()->getHistory()->push(
-        new MoveNodeCommand(node, startPos, endPos)
+        new MoveNodeCommand(node->getScene(), node->getId(), startPos, endPos)
     );
 
     }

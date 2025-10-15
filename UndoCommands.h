@@ -207,11 +207,11 @@ public:
 
         // Paste nodes at either the original offset (first time) or the saved absolute positions
         QJsonArray nodesArray = data["nodes"].toArray();
-        for (auto val : nodesArray) {
-            QJsonObject nodeData = val.toObject();
+        for (int i = 0; i < nodesArray.size(); ++i) {
+            QJsonObject nodeData = nodesArray[i].toObject();
             Node* newNode = new Node(scene);
             // restore id when node is pasted
-            newNode->deserialize(nodeData, hashmap, false);
+            newNode->deserialize(nodeData, hashmap, !firstExecution);
 
             QPointF originalPos = newNode->pos();
 
@@ -220,9 +220,11 @@ public:
                 // Offset by mouse-based paste center
                 QPointF offset = pasteCenter - originalCenter;
                 finalPos = originalPos + offset;
-
                 // Save relative offset for redo
                 relativeOffsets.push_back(finalPos - pasteCenter);
+                //restore the pasted node id to apply other history
+                nodeData["id"] = newNode->getId();
+                nodesArray[i] = nodeData;
             } else {
                 // Recreate same layout based on stored relative offsets
                 if (offsetIndex < relativeOffsets.size())
@@ -237,6 +239,7 @@ public:
             offsetIndex++;
         }
 
+        data["nodes"] = nodesArray;
         offsetIndex = 0; // reset for next redo/undo cycle
 
         // Create edges
@@ -346,33 +349,48 @@ private:
 // --------------------------------------
 class MoveNodeCommand : public QUndoCommand {
 public:
-    MoveNodeCommand(Node* node, const QPointF& oldPos, const QPointF& newPos,
+    MoveNodeCommand(Scene* scene,
+                    qint64 nodeId,
+                    const QPointF& oldPos,
+                    const QPointF& newPos,
                     QUndoCommand* parent = nullptr)
         : QUndoCommand("Move Node", parent),
-          m_node(node),
-          m_oldPos(oldPos),
-          m_newPos(newPos) {}
+        m_scene(scene),
+        m_nodeId(nodeId),
+        m_oldPos(oldPos),
+        m_newPos(newPos) {}
 
     void undo() override {
-        if (m_node) {
-            m_node->setPos(m_oldPos.x(), m_oldPos.y());
-            m_node->updateConnectedEdges();
+        Node* node = m_scene->getNodeById(m_nodeId);
+        if (node) {
+            node->setPos(m_oldPos.x(), m_oldPos.y());
+            node->updateConnectedEdges();
         }
     }
 
     void redo() override {
-        if (m_node) {
-            m_node->setPos(m_newPos.x(), m_newPos.y());
-            m_node->updateConnectedEdges();
+        Node* node = m_scene->getNodeById(m_nodeId);
+        if (node) {
+            node->setPos(m_newPos.x(), m_newPos.y());
+            node->updateConnectedEdges();
         }
     }
 
 private:
-    Node* m_node;
+    Node* findNode() const {
+        if (!m_scene) return nullptr;
+        for (Node* node : m_scene->getNodes()) {
+            if (node && node->getId() == m_nodeId)
+                return node;
+        }
+        return nullptr;
+    }
+
+    Scene* m_scene = nullptr;
+    qint64 m_nodeId = -1;
     QPointF m_oldPos;
     QPointF m_newPos;
 };
-
 // --------------------------------------
 // Delete Selected
 // --------------------------------------
