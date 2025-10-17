@@ -104,7 +104,6 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
     */
         QGraphicsView::keyPressEvent(event);  // call base class
 }
-
 void NodeEditorGraphicsView::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::MiddleButton) {
         middleMouseButtonPress(event);
@@ -190,6 +189,10 @@ void NodeEditorGraphicsView::leftMouseButtonPress(QMouseEvent* event) {
         QGraphicsView::mousePressEvent(&fakeEvent);
         return;
     }
+    m_moveData.clear();
+    m_draggedNodes.clear();
+
+    m_nodesAreDragging = false;
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -216,8 +219,28 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
     if (mode == MODE_EDGE_DRAG && distanceBetweenClickAndReleaseIsOff(event)) {
         if (edgeDragEnd(item)) return;
     }
-
     QGraphicsView::mouseReleaseEvent(event);
+    bool anyMoved = false;
+
+    for (auto* nodeItem : m_draggedNodes) {
+        if (!nodeItem || !nodeItem->getNode()) continue;
+
+        qint64 id = nodeItem->getNode()->getId();
+        QPointF startPos = m_moveData.value(id).first;
+        QPointF endPos = nodeItem->scenePos();
+
+        if (startPos != endPos) {
+            m_moveData[id].second = endPos;
+            anyMoved = true;
+        }
+    }
+
+    if (anyMoved)
+        m_grScene->getScene()->getHistory()->push(new MoveNodeCommand(m_grScene->getScene(), m_moveData));
+
+    m_draggedNodes.clear();
+    m_moveData.clear();
+    m_nodesAreDragging = false;
 }
 
 void NodeEditorGraphicsView::rightMouseButtonPress(QMouseEvent* event) {
@@ -311,6 +334,21 @@ void NodeEditorGraphicsView::mouseMoveEvent(QMouseEvent* event) {
                          static_cast<int>(lastSceneMousePosition.y()));
 
     QGraphicsView::mouseMoveEvent(event);
+    auto items = scene()->selectedItems(); // or scene()->items(mapToScene(event->pos()))
+    for (auto* item : items) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+
+            if (!m_draggedNodes.contains(nodeItem)) {
+                m_draggedNodes.append(nodeItem);
+                qint64 id = nodeItem->getNode()->getId();
+                m_moveData[id].first = nodeItem->scenePos(); // record start pos
+            }
+
+            nodeItem->getNode()->updateConnectedEdges(); // live edge update
+        }
+    }
+
+    m_nodesAreDragging = !m_draggedNodes.isEmpty();
 }
 
 void NodeEditorGraphicsView::wheelEvent(QWheelEvent* event) {

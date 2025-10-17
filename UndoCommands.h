@@ -350,46 +350,43 @@ private:
 class MoveNodeCommand : public QUndoCommand {
 public:
     MoveNodeCommand(Scene* scene,
-                    qint64 nodeId,
-                    const QPointF& oldPos,
-                    const QPointF& newPos,
+                    const QMap<qint64, QPair<QPointF, QPointF>> moveData,
                     QUndoCommand* parent = nullptr)
-        : QUndoCommand("Move Node", parent),
-        m_scene(scene),
-        m_nodeId(nodeId),
-        m_oldPos(oldPos),
-        m_newPos(newPos) {}
+        : QUndoCommand("Move Nodes", parent),
+          m_scene(scene),
+          m_moveData(moveData) {}
 
     void undo() override {
-        Node* node = m_scene->getNodeById(m_nodeId);
-        if (node) {
-            node->setPos(m_oldPos.x(), m_oldPos.y());
-            node->updateConnectedEdges();
+        qDebug() << "Im aasd runningggg";
+        if (!m_scene) return;
+
+        for (auto it = m_moveData.constBegin(); it != m_moveData.constEnd(); ++it) {
+            qint64 nodeId = it.key();
+            const QPointF& oldPos = it.value().first;
+            if (Node* node = m_scene->getNodeById(nodeId)) {
+                node->setPos(oldPos.x(), oldPos.y());
+                node->updateConnectedEdges();
+            }
         }
     }
 
     void redo() override {
-        Node* node = m_scene->getNodeById(m_nodeId);
-        if (node) {
-            node->setPos(m_newPos.x(), m_newPos.y());
-            node->updateConnectedEdges();
+        qDebug() << "Im runningggg";
+        if (!m_scene) return;
+
+        for (auto it = m_moveData.constBegin(); it != m_moveData.constEnd(); ++it) {
+            qint64 nodeId = it.key();
+            const QPointF& newPos = it.value().second;
+            if (Node* node = m_scene->getNodeById(nodeId)) {
+                node->setPos(newPos.x(), newPos.y());
+                node->updateConnectedEdges();
+            }
         }
     }
 
 private:
-    Node* findNode() const {
-        if (!m_scene) return nullptr;
-        for (Node* node : m_scene->getNodes()) {
-            if (node && node->getId() == m_nodeId)
-                return node;
-        }
-        return nullptr;
-    }
-
     Scene* m_scene = nullptr;
-    qint64 m_nodeId = -1;
-    QPointF m_oldPos;
-    QPointF m_newPos;
+    QMap<qint64, QPair<QPointF, QPointF>> m_moveData; // { nodeId: (oldPos, newPos) }
 };
 // --------------------------------------
 // Delete Selected

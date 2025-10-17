@@ -24,8 +24,8 @@ NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
 
 void NodeGraphicsItem::initUI()
 {
-    setFlag(QGraphicsItem::ItemIsSelectable);
-    setFlag(QGraphicsItem::ItemIsMovable);
+    setFlag(QGraphicsItem::ItemIsSelectable, true);
+    setFlag(QGraphicsItem::ItemIsMovable, true);
 }
 
 void NodeGraphicsItem::initTitle()
@@ -61,7 +61,7 @@ QString NodeGraphicsItem::title() const
 
 /**
  * @brief Sets the widget inside the Node.
- * 
+ *
  * @return QWidget of what is diplayed.
  */
 QWidget* NodeGraphicsItem::setItemWidget() const
@@ -85,7 +85,7 @@ QWidget* NodeGraphicsItem::setItemWidget() const
 
 void NodeGraphicsItem::initItemWidget(){
     graphicsProxyWidget = new QGraphicsProxyWidget(this);
-    itemWidget->setGeometry(edgeSize, titleHeight+edgeSize, 
+    itemWidget->setGeometry(edgeSize, titleHeight+edgeSize,
             width-2*edgeSize, height-2*edgeSize-titleHeight);
     graphicsProxyWidget->setWidget(itemWidget);
 
@@ -123,31 +123,5 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->drawPath(pathOutline.simplified());
 }
 
-void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    QGraphicsItem::mouseMoveEvent(event);
-    node->updateConnectedEdges();
-    isMoved = true;
-}
 
-void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    startPos = pos();
-}
 
-void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-    QGraphicsItem::mouseReleaseEvent(event);
-    
-    if(isMoved){
-        QGraphicsItem::mouseReleaseEvent(event);
-
-    QPointF endPos = pos();
-    if (startPos == endPos) return;
-
-    node->getScene()->getHistory()->push(
-        new MoveNodeCommand(node->getScene(), node->getId(), startPos, endPos)
-    );
-
-    }
-}
