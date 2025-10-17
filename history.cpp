@@ -108,7 +108,8 @@ void History::restoreHistoryStamp(const QJsonObject &historyStamp)
 
     // Restore edge selection
     QJsonArray selEdges = historyStamp["selection"].toObject()["edges"].toArray();
-    for (const QJsonValue& edgeIdVal : selEdges) {
+    for (auto it = selEdges.begin(); it != selEdges.end(); ++it) {
+        const QJsonValue &edgeIdVal = *it;
         qint64 edgeId = edgeIdVal.toVariant().toLongLong();
         for (Edge* edge : scene->getEdges()) {
             if (edge->getId() == edgeId) {
@@ -122,7 +123,8 @@ void History::restoreHistoryStamp(const QJsonObject &historyStamp)
 
     // Restore node selection
     QJsonArray selNodes = historyStamp["selection"].toObject()["nodes"].toArray();
-    for (const QJsonValue& nodeIdVal : selNodes) {
+    for (auto it = selNodes.begin(); it != selNodes.end(); ++it) {
+        const QJsonValue &nodeIdVal = *it;
         qint64 nodeId = nodeIdVal.toVariant().toLongLong();
         for (Node* node : scene->getNodes()) {
             if (node->getId() == nodeId) {

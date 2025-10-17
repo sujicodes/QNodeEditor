@@ -53,6 +53,8 @@ void Scene::clearScene() {
             nodes.front()->remove();
         }
     }
+    for (Edge* edge : edges) edge->remove();
+    edges.clear();
 }
 
 QJsonObject Scene::serialize() const {
@@ -99,12 +101,12 @@ void Scene::deserialize(
     // create nodes
     if (data.contains("nodes") && data["nodes"].isArray()) {
         QJsonArray nodesArray = data["nodes"].toArray();
-        for (const QJsonValue& nodeVal : nodesArray) {
+        for (auto it = nodesArray.begin(); it != nodesArray.end(); ++it) {
+            const QJsonValue &nodeVal = *it;
             if (nodeVal.isObject()) {
                 QJsonObject nodeObj = nodeVal.toObject();
                 Node* node = new Node(this);       // Node constructor takes Scene*
                 node->deserialize(nodeObj, hashmap, restoreId);
-                nodes.push_back(node);             // keep track of it in Scene
             }
         }
     }
@@ -112,12 +114,12 @@ void Scene::deserialize(
     // create edges
     if (data.contains("edges") && data["edges"].isArray()) {
         QJsonArray edgesArray = data["edges"].toArray();
-        for (const QJsonValue& edgeVal : edgesArray) {
+        for (auto it = edgesArray.begin(); it != edgesArray.end(); ++it) {
+            const QJsonValue &edgeVal = *it;
             if (edgeVal.isObject()) {
                 QJsonObject edgeObj = edgeVal.toObject();
                 Edge* edge = new Edge(this);       // Edge constructor takes Scene*
                 edge->deserialize(edgeObj, hashmap, restoreId);
-                edges.push_back(edge);             // keep track of it in Scene
             }
         }
     }
@@ -253,7 +255,8 @@ void Scene::deserializeFromClipboard(const QJsonObject &data)
     double maxy = std::numeric_limits<double>::lowest();
 
     QJsonArray nodesArray = data["nodes"].toArray();
-    for (const QJsonValue &val : nodesArray) {
+    for (auto it = nodesArray.begin(); it != nodesArray.end(); ++it) {
+        const QJsonValue &val = *it;
         QJsonObject nodeData = val.toObject();
         double x = nodeData["pos_x"].toDouble();
         double y = nodeData["pos_y"].toDouble();
@@ -272,7 +275,8 @@ void Scene::deserializeFromClipboard(const QJsonObject &data)
     double offsetY = mouseScenePos.y() - bboxCenterY;
 
     // --- create each node ---
-    for (const QJsonValue &val : nodesArray) {
+    for (auto it = nodesArray.begin(); it != nodesArray.end(); ++it) {
+        const QJsonValue &val = *it;
         QJsonObject nodeData = val.toObject();
 
         Node *newNode = new Node(this);
@@ -285,7 +289,8 @@ void Scene::deserializeFromClipboard(const QJsonObject &data)
     // --- create each edge ---
     if (data.contains("edges")) {
         QJsonArray edgesArray = data["edges"].toArray();
-        for (const QJsonValue &val : edgesArray) {
+        for (auto it = edgesArray.begin(); it != edgesArray.end(); ++it) {
+            const QJsonValue &val = *it;
             QJsonObject edgeData = val.toObject();
 
             Edge *newEdge = new Edge(this);
