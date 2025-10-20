@@ -44,6 +44,19 @@ NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidg
     setScene(m_grScene);
     connect(m_grScene, &QGraphicsScene::selectionChanged,
             this, &NodeEditorGraphicsView::onSelectionChanged);
+
+    connect(m_grScene->getScene()->getHistory(), &QUndoStack::indexChanged, this, [this]() {
+        // Resync to actual selection
+        previousNodeIds.clear();
+        previousEdgeIds.clear();
+
+        for (auto* item : m_grScene->selectedItems()) {
+            if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item))
+                previousNodeIds.insert(nodeItem->getNode()->getId());
+            else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item))
+                previousEdgeIds.insert(edgeItem->getEdge()->getId());
+        }
+    });
 }
 
 void NodeEditorGraphicsView::initUI() {
@@ -390,17 +403,36 @@ QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {
 
 void NodeEditorGraphicsView::onSelectionChanged()
 {
+    Scene* scene = m_grScene->getScene();
     QList<QGraphicsItem*> newSelection = m_grScene->selectedItems();
 
-    if (newSelection != previousSelection) {
-        m_grScene->getScene()->getHistory()->push(
-            new SelectionChangedCommand(m_grScene->getScene(),
-                                        previousSelection,
-                                        newSelection)
-            );
-        previousSelection = newSelection;
+    // Gather IDs
+    QSet<qint64> newNodeIds;
+    QSet<qint64> newEdgeIds;
+
+    for (auto* item : newSelection) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+            Node* node = nodeItem->getNode();
+            if (node) newNodeIds.insert(node->getId());
+        } else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
+            Edge* edge = edgeItem->getEdge();
+            if (edge) newEdgeIds.insert(edge->getId());
+        }
     }
 
+    // Only push command if something actually changed
+    if (newNodeIds != previousNodeIds || newEdgeIds != previousEdgeIds) {
+        scene->getHistory()->push(
+            new SelectionChangedCommand(scene,
+                                        previousNodeIds,
+                                        previousEdgeIds,
+                                        newNodeIds,
+                                        newEdgeIds)
+            );
+
+        previousNodeIds = newNodeIds;
+        previousEdgeIds = newEdgeIds;
+    }
 }
 
 

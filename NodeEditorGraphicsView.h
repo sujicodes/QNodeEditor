@@ -65,11 +65,14 @@ private:
     Edge* dragEdge;
     Edge* previousEdge;
     Socket* lastStartSocket;
-    QList<QGraphicsItem*> previousSelection;
+    //QList<QGraphicsItem*> previousSelection;
 
     QMap<qint64, QPair<QPointF, QPointF>> m_moveData;
     QList<NodeGraphicsItem*> m_draggedNodes;
     bool m_nodesAreDragging = false;
+
+    QSet<qint64> previousNodeIds;
+    QSet<qint64> previousEdgeIds;
 
 };
 

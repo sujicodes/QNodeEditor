@@ -26,42 +26,54 @@
 // --------------------------------------
 class SelectionChangedCommand : public QUndoCommand {
 public:
-    SelectionChangedCommand(Scene *scene,
-                            const QList<QGraphicsItem*> &oldSel,
-                            const QList<QGraphicsItem*> &newSel,
-                            QUndoCommand *parent = nullptr)
+    SelectionChangedCommand(Scene* scene,
+                            const QSet<qint64>& oldNodeIds,
+                            const QSet<qint64>& oldEdgeIds,
+                            const QSet<qint64>& newNodeIds,
+                            const QSet<qint64>& newEdgeIds,
+                            QUndoCommand* parent = nullptr)
         : QUndoCommand("Selection Changed", parent),
-        m_scene(scene)
-    {
-        for (auto *item : oldSel)
-            m_oldSel.insert(item);
-        for (auto *item : newSel)
-            m_newSel.insert(item);
-    }
+        m_scene(scene),
+        m_oldNodeIds(oldNodeIds),
+        m_oldEdgeIds(oldEdgeIds),
+        m_newNodeIds(newNodeIds),
+        m_newEdgeIds(newEdgeIds)
+    {}
 
-    void undo() override { applySelection(m_oldSel); }
-    void redo() override { applySelection(m_newSel); }
+    void undo() override { applySelection(m_oldNodeIds, m_oldEdgeIds); }
+    void redo() override { applySelection(m_newNodeIds, m_newEdgeIds); }
 
 private:
-    void applySelection(const QSet<QGraphicsItem*> &selection) {
+    void applySelection(const QSet<qint64>& nodeIds, const QSet<qint64>& edgeIds) {
         if (!m_scene) return;
-        auto *gscene = m_scene->graphicsScene();
+        QGraphicsScene* gscene = m_scene->graphicsScene();
         if (!gscene) return;
 
         gscene->blockSignals(true);
         gscene->clearSelection();
 
-        for (auto *item : selection) {
-            if (item && !item->scene()) continue; // skip deleted
-            item->setSelected(true);
+        // Re-select nodes
+        for (auto id : nodeIds) {
+            Node* node = m_scene->getNodeById(id);
+            if (node && node->getNodeGraphicsItem())
+                node->getNodeGraphicsItem()->setSelected(true);
+        }
+
+        // Re-select edges
+        for (auto id : edgeIds) {
+            Edge* edge = m_scene->getEdgeById(id);
+            if (edge && edge->getEdgeGraphicsItem())
+                edge->getEdgeGraphicsItem()->setSelected(true);
         }
 
         gscene->blockSignals(false);
     }
 
-    Scene *m_scene = nullptr;
-    QSet<QGraphicsItem*> m_oldSel;
-    QSet<QGraphicsItem*> m_newSel;
+    Scene* m_scene = nullptr;
+    QSet<qint64> m_oldNodeIds;
+    QSet<qint64> m_oldEdgeIds;
+    QSet<qint64> m_newNodeIds;
+    QSet<qint64> m_newEdgeIds;
 };
 
 
