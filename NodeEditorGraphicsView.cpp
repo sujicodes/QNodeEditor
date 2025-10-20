@@ -15,10 +15,12 @@
 #include "Edge.h"
 #include "EdgeGraphicsPathItem.h"
 #include "history.h"
+#include "UndoCommands.h"
 
 #include <QMouseEvent>
 #include <QGraphicsItem>
 #include <QDebug>
+#include <QList>
 
 QString debug_modifiers(QInputEvent* event)
 {
@@ -40,6 +42,21 @@ NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidg
 {
     initUI();
     setScene(m_grScene);
+    connect(m_grScene, &QGraphicsScene::selectionChanged,
+            this, &NodeEditorGraphicsView::onSelectionChanged);
+
+    connect(m_grScene->getScene()->getHistory(), &QUndoStack::indexChanged, this, [this]() {
+        // Resync to actual selection
+        previousNodeIds.clear();
+        previousEdgeIds.clear();
+
+        for (auto* item : m_grScene->selectedItems()) {
+            if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item))
+                previousNodeIds.insert(nodeItem->getNode()->getId());
+            else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item))
+                previousEdgeIds.insert(edgeItem->getEdge()->getId());
+        }
+    });
 }
 
 void NodeEditorGraphicsView::initUI() {
@@ -100,7 +117,6 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
     */
         QGraphicsView::keyPressEvent(event);  // call base class
 }
-
 void NodeEditorGraphicsView::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::MiddleButton) {
         middleMouseButtonPress(event);
@@ -186,6 +202,10 @@ void NodeEditorGraphicsView::leftMouseButtonPress(QMouseEvent* event) {
         QGraphicsView::mousePressEvent(&fakeEvent);
         return;
     }
+    m_moveData.clear();
+    m_draggedNodes.clear();
+
+    m_nodesAreDragging = false;
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -212,12 +232,28 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
     if (mode == MODE_EDGE_DRAG && distanceBetweenClickAndReleaseIsOff(event)) {
         if (edgeDragEnd(item)) return;
     }
+    QGraphicsView::mouseReleaseEvent(event);
+    bool anyMoved = false;
 
-    if (dragMode() == QGraphicsView::RubberBandDrag) {
-        m_grScene->getScene()->getHistory()->storeHistory("Selection changed");
+    for (auto* nodeItem : m_draggedNodes) {
+        if (!nodeItem || !nodeItem->getNode()) continue;
+
+        qint64 id = nodeItem->getNode()->getId();
+        QPointF startPos = m_moveData.value(id).first;
+        QPointF endPos = nodeItem->scenePos();
+
+        if (startPos != endPos) {
+            m_moveData[id].second = endPos;
+            anyMoved = true;
+        }
     }
 
-    QGraphicsView::mouseReleaseEvent(event);
+    if (anyMoved)
+        m_grScene->getScene()->getHistory()->push(new MoveNodeCommand(m_grScene->getScene(), m_moveData));
+
+    m_draggedNodes.clear();
+    m_moveData.clear();
+    m_nodesAreDragging = false;
 }
 
 void NodeEditorGraphicsView::rightMouseButtonPress(QMouseEvent* event) {
@@ -249,28 +285,41 @@ void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
 }
 
 bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
-    mode = MODE_NOOP;
+     mode = MODE_NOOP;
     qDebug() << "Edge Drag END";
+
     if (auto endSocketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
         if (endSocketItem->getSocket() != lastStartSocket) {
-            if (endSocketItem->getSocket()->hasConnectedEdge()) endSocketItem->getSocket()->getConnectedEdge()->remove();
-            if (previousEdge) previousEdge->remove();
 
-            dragEdge->setStartSocket(lastStartSocket);
-            dragEdge->setEndSocket(endSocketItem->getSocket());
+            // capture what needs to be removed
+            Edge* conflictingEdge = nullptr;
+            if (endSocketItem->getSocket()->hasConnectedEdge())
+                conflictingEdge = endSocketItem->getSocket()->getConnectedEdge();
 
-            dragEdge->getStartSocket()->setConnectedEdge(dragEdge);
-            dragEdge->getEndSocket()->setConnectedEdge(dragEdge);
+            Edge* prevEdge = previousEdge; // saved in dragStart
 
-            dragEdge->updatePositions();
-            m_grScene->getScene()->getHistory()->storeHistory("Created new edge by dragging");
+            // Push proper undo command that owns this edge + conflicts
+            m_grScene->getScene()->getHistory()->push(
+                new CreateEdgeCommand(m_grScene->getScene(),
+                                      dragEdge,
+                                      lastStartSocket,
+                                      endSocketItem->getSocket(),
+                                      prevEdge,
+                                      conflictingEdge)
+            );
+
+            dragEdge = nullptr; // ownership now inside command
             return true;
-            }
+        }
     }
 
-    dragEdge->remove();
-    dragEdge = nullptr;
+    // cancel preview edge if invalid
+    if (dragEdge) {
+        dragEdge->remove();
+        dragEdge = nullptr;
+    }
 
+    // restore previousEdge if drag failed
     if (previousEdge) {
         previousEdge->getStartSocket()->setConnectedEdge(previousEdge);
     }
@@ -298,6 +347,21 @@ void NodeEditorGraphicsView::mouseMoveEvent(QMouseEvent* event) {
                          static_cast<int>(lastSceneMousePosition.y()));
 
     QGraphicsView::mouseMoveEvent(event);
+    auto items = scene()->selectedItems(); // or scene()->items(mapToScene(event->pos()))
+    for (auto* item : items) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+
+            if (!m_draggedNodes.contains(nodeItem)) {
+                m_draggedNodes.append(nodeItem);
+                qint64 id = nodeItem->getNode()->getId();
+                m_moveData[id].first = nodeItem->scenePos(); // record start pos
+            }
+
+            nodeItem->getNode()->updateConnectedEdges(); // live edge update
+        }
+    }
+
+    m_nodesAreDragging = !m_draggedNodes.isEmpty();
 }
 
 void NodeEditorGraphicsView::wheelEvent(QWheelEvent* event) {
@@ -318,16 +382,57 @@ void NodeEditorGraphicsView::wheelEvent(QWheelEvent* event) {
 
 void NodeEditorGraphicsView::deleteSelected() {
 
-    for (QGraphicsItem* item : m_grScene->selectedItems())  // grScene is your QGraphicsScene*
-    {
-        if (auto edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
-            edgeItem->getEdge()->remove();
-        }
-        else if (auto nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
-            nodeItem->getNode()->remove();
+    QList<QGraphicsItem*> selected = m_grScene->selectedItems();
+    if (selected.isEmpty()) return;
+
+    m_grScene->getScene()->getHistory()->push(
+        new DeleteSelectedCommand(m_grScene->getScene(), selected)
+    );
+}
+
+QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {
+    QList<qint64> ids;
+    for (QGraphicsItem* item : items) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item))
+            ids.append(nodeItem->getNode()->getId());
+        else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item))
+            ids.append(edgeItem->getEdge()->getId());
+    }
+    return ids;
+}
+
+void NodeEditorGraphicsView::onSelectionChanged()
+{
+    Scene* scene = m_grScene->getScene();
+    QList<QGraphicsItem*> newSelection = m_grScene->selectedItems();
+
+    // Gather IDs
+    QSet<qint64> newNodeIds;
+    QSet<qint64> newEdgeIds;
+
+    for (auto* item : newSelection) {
+        if (auto* nodeItem = dynamic_cast<NodeGraphicsItem*>(item)) {
+            Node* node = nodeItem->getNode();
+            if (node) newNodeIds.insert(node->getId());
+        } else if (auto* edgeItem = dynamic_cast<EdgeGraphicsPathItem*>(item)) {
+            Edge* edge = edgeItem->getEdge();
+            if (edge) newEdgeIds.insert(edge->getId());
         }
     }
-    m_grScene->getScene()->getHistory()->storeHistory("Delete Selected");
+
+    // Only push command if something actually changed
+    if (newNodeIds != previousNodeIds || newEdgeIds != previousEdgeIds) {
+        scene->getHistory()->push(
+            new SelectionChangedCommand(scene,
+                                        previousNodeIds,
+                                        previousEdgeIds,
+                                        newNodeIds,
+                                        newEdgeIds)
+            );
+
+        previousNodeIds = newNodeIds;
+        previousEdgeIds = newEdgeIds;
+    }
 }
 
 

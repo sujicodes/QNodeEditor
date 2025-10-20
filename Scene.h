@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QVector>
+#include <QUndoStack>
 #include "NodeGraphicsScene.h"
 #include "Serializable.h"
 
@@ -24,7 +25,7 @@ public:
     const QVector<Node*>& getNodes() const { return nodes; }
 
     NodeGraphicsScene* graphicsScene() const { return _graphicsScene; }
-    History*  getHistory() const { return history; }
+    QUndoStack*  getHistory() const { return history; }
     void clearScene();
 
     bool loadFromFile(const QString& filename);
@@ -39,6 +40,9 @@ public:
 
     QJsonObject serializeSelected(bool del = true);
     void deserializeFromClipboard(const QJsonObject& data);
+
+    Node* getNodeById(qint64 id) const;
+    Edge* getEdgeById(qint64 id) const;
     
 
 private:
@@ -46,10 +50,9 @@ private:
 
     QVector<Node*> nodes;
     QVector<Edge*> edges;
-
     int sceneWidth;
     int sceneHeight;
-    History* history;
+    QUndoStack* history;
 
     NodeGraphicsScene* _graphicsScene;
 };

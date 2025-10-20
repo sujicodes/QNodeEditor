@@ -52,8 +52,9 @@ void Socket::deserialize(
     std::unordered_map<qint64, Serializable*>& hashmap,
     bool restoreId
     ) {
+    if(restoreId){
+        id = data["id"].toDouble();   // or .toVariant().toLongLong()
+    }
+    hashmap[data["id"].toDouble()] = this;
 
-    id = data["id"].toDouble();   // or .toVariant().toLongLong()
-    hashmap[id] = this;
-    return;
 }

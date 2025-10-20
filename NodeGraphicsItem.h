@@ -16,8 +16,6 @@ public:
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
     void setTitle(const QString &title);
     QString title() const;
@@ -56,8 +54,10 @@ private:
     float titleHeight = 24.0;
     float padding = 4.0;
 
-    bool isMoved = false;
+    QPointF startPos;
 
+    bool isMoved = false;
+    bool m_dragging = false;
     Node *node;
 
     QPen penDefault = QPen(QColor("#7F000000"));

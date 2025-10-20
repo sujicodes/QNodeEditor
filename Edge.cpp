@@ -77,7 +77,6 @@ void Edge::remove() {
     if (scene && grEdge) {
         scene->graphicsScene()->removeItem(grEdge);
     }
-    delete grEdge;
     grEdge = nullptr;
     if (scene) scene->removeEdge(this);
 }
@@ -110,6 +109,7 @@ void Edge::deserialize(
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
+        hashmap[id] = this;
     }
 
     qint64 startId = static_cast<qint64>(data["start"].toDouble());

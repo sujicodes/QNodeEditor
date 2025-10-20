@@ -10,6 +10,7 @@
 class Scene;
 class NodeGraphicsItem;
 class Socket;
+class Edge;
 class Serializable;
 
 class Node : public Serializable {
@@ -18,6 +19,8 @@ public:
          const QString& title = "Undefined Node",
          const std::vector<int>& in = {},
          const std::vector<int>& outs = {});
+    
+    ~Node();
 
     std::pair<float, float> getSocketPosition(int index, int position);
 
@@ -26,9 +29,11 @@ public:
     NodeGraphicsItem* getNodeGraphicsItem() { return grNode; }
     Scene* getScene() { return scene; }
     void updateConnectedEdges();
+    QList<Edge*> getConnectedEdges();
     QPointF pos() const;
     void setPos(float x, float y);
     void remove();
+
 
     // Serializable implementation
     QJsonObject serialize() const override;
