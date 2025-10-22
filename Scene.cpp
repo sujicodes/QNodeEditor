@@ -55,8 +55,8 @@ void Scene::clearScene() {
             nodes.front()->remove();
         }
     }
-    //for (Edge* edge : edges) edge->remove();
-    //edges.clear();
+    setHasBeenModified(false);
+    
 }
 
 QJsonObject Scene::serialize() const {
@@ -142,6 +142,7 @@ bool Scene::saveToFile(const QString& filename)
     file.close();
 
     qDebug() << "Saving to" << filename << "was successful.";
+    setHasBeenModified(false);
     return true;
 }
 
@@ -171,6 +172,7 @@ bool Scene::loadFromFile(const QString& filename)
 
     // deserialize() must accept a QJsonObject to restore nodes/edges
     deserialize(doc.object(), hashmap);
+    setHasBeenModified(false);
     return true;
 }
 
@@ -238,6 +240,7 @@ QJsonObject Scene::serializeSelected(bool del)
             getHistory()->push(
                 new CutCommand(this, data, graphicsScene()->selectedItems())
             );
+            setHasBeenModified(true);
         }
     return data;
 }
@@ -247,6 +250,7 @@ void Scene::deserializeFromClipboard(const QJsonObject &data)
     getHistory()->push(
             new PasteCommand(this, data)
         );
+    setHasBeenModified(true);
 }
 
 Node* Scene::getNodeById(qint64 id) const {
@@ -263,3 +267,25 @@ Edge* Scene::getEdgeById(qint64 id) const {
     return nullptr;
 }
 
+bool Scene::hasBeenModified() const {
+    return m_hasBeenModified;
+}
+
+void Scene::setHasBeenModified(bool value) {
+    // If transitioning from false → true
+    if (!m_hasBeenModified && value) {
+        m_hasBeenModified = true;
+
+        // Notify all registered listeners
+        for (auto& callback : m_hasBeenModifiedListeners) {
+            if (callback) callback();
+        }
+
+    } else {
+        m_hasBeenModified = value;
+    }
+}
+
+void Scene::addHasBeenModifiedListener(const std::function<void()>& callback) {
+    m_hasBeenModifiedListeners.push_back(callback);
+}
