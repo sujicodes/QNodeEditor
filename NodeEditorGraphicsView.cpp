@@ -250,6 +250,7 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
 
     if (anyMoved)
         m_grScene->getScene()->getHistory()->push(new MoveNodeCommand(m_grScene->getScene(), m_moveData));
+        m_grScene->getScene()->setHasBeenModified(true);
 
     m_draggedNodes.clear();
     m_moveData.clear();
@@ -309,6 +310,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
             );
 
             dragEdge = nullptr; // ownership now inside command
+            m_grScene->getScene()->setHasBeenModified(true);
             return true;
         }
     }
@@ -388,6 +390,7 @@ void NodeEditorGraphicsView::deleteSelected() {
     m_grScene->getScene()->getHistory()->push(
         new DeleteSelectedCommand(m_grScene->getScene(), selected)
     );
+    m_grScene->getScene()->setHasBeenModified(true);
 }
 
 QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {

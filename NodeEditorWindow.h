@@ -19,14 +19,19 @@ private slots:
 
     void onFileNew();
     void onFileOpen();
-    void onFileSave();
-    void onFileSaveAs();
+    bool onFileSave();
+    bool onFileSaveAs();
     void onEditCut();
     void onEditCopy();
     void onEditPaste();
     void onEditUndo();
     void onEditRedo();
     void onEditDelete();
+
+    void changeTitle();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 private:
     QAction* createAct(const QString &name,
@@ -40,6 +45,8 @@ private:
     QString filename;
     QLabel* statusMousePos;
     NodeEditorWidget* nodeEditorWidget;
+    bool isModified() const;
+    bool maybeSave();
 };
 
 #endif // NODEEDITORWINDOW_H

@@ -43,6 +43,10 @@ public:
 
     Node* getNodeById(qint64 id) const;
     Edge* getEdgeById(qint64 id) const;
+
+    bool hasBeenModified() const;
+    void setHasBeenModified(bool value);
+    void addHasBeenModifiedListener(const std::function<void()>& callback);
     
 
 private:
@@ -55,6 +59,8 @@ private:
     QUndoStack* history;
 
     NodeGraphicsScene* _graphicsScene;
+    bool m_hasBeenModified;
+    std::vector<std::function<void()>> m_hasBeenModifiedListeners;
 };
 
 #endif // SCENE_H
