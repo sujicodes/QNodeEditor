@@ -52,22 +52,25 @@ void Edge::updatePositions() {
 }
 
 void Edge::setStartSocket(Socket* socket){
+    if (m_startSocket){
+        m_startSocket->removeEdge(this);
+    }
     m_startSocket = socket;
     if(socket)
-        m_startSocket->setConnectedEdge(this);
-
+        m_startSocket->addEdge(this);
 }
 
 void Edge::setEndSocket(Socket* socket){
+    if (m_endSocket){
+        m_endSocket->removeEdge(this);
+    }
     m_endSocket = socket;
     if(socket)
-        m_endSocket->setConnectedEdge(this);
+        m_endSocket->addEdge(this);
 
 }
 
 void Edge::removeFromSockets() {
-    if (m_startSocket) m_startSocket->setConnectedEdge();
-    if (m_endSocket) m_endSocket->setConnectedEdge();
     m_startSocket = nullptr;
     m_endSocket = nullptr;
 }

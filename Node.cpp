@@ -25,7 +25,7 @@ Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const
 
     counter = 0;
     for (int i : outs) {
-        Socket* socket = new Socket(this, counter++, Socket::RIGHT_TOP);
+        Socket* socket = new Socket(this, counter++, Socket::RIGHT_TOP, true);
         addOutput(socket);
     }
 }
@@ -76,8 +76,9 @@ void Node::updateConnectedEdges()
 {   
     for (size_t i = 0; i < inputs.size(); ++i) {
         Socket* socket = inputs.at(i);
-        if (socket->hasConnectedEdge()) {
-            socket->getConnectedEdge()->updatePositions();
+
+        for(Edge* edge : socket->getConnectedEdges()){
+            edge->updatePositions();
         }
     }
 
@@ -86,8 +87,8 @@ void Node::updateConnectedEdges()
         if (!socket) {
             continue;
         }
-        if (socket->hasConnectedEdge()) {
-            socket->getConnectedEdge()->updatePositions();
+        for(Edge* edge : socket->getConnectedEdges()){
+            edge->updatePositions();
         }
     }
 }
@@ -98,9 +99,7 @@ QList<Edge*> Node::getConnectedEdges(){
 
     for (size_t i = 0; i < inputs.size(); ++i) {
         Socket* socket = inputs.at(i);
-        if (socket->hasConnectedEdge()) {
-            edges.append(socket->getConnectedEdge());
-        }
+        edges.append(socket->getConnectedEdges());
     }
 
     for (size_t i = 0; i < outputs.size(); ++i) {
@@ -109,7 +108,7 @@ QList<Edge*> Node::getConnectedEdges(){
             continue;
         }
         if (socket->hasConnectedEdge()) {
-            edges.append(socket->getConnectedEdge());
+            edges.append(socket->getConnectedEdges());
         }
     }
     return edges;
@@ -123,15 +122,19 @@ void Node::remove() {
     for (Socket* socket : inputs) {
         if (socket->hasConnectedEdge()) {
             qDebug() << "    - removing from socket:" << socket
-                     << "edge:" << socket->getConnectedEdge();
-            socket->getConnectedEdge()->remove();
+                     << "edge:" << socket->getConnectedEdges();
+            for(Edge* edge : socket->getConnectedEdges()){
+                edge->remove();
+            }
         }
     }
     for (Socket* socket : outputs) {
         if (socket->hasConnectedEdge()) {
             qDebug() << "    - removing from socket:" << socket
-                     << "edge:" << socket->getConnectedEdge();
-            socket->getConnectedEdge()->remove();
+                     << "edge:" << socket->getConnectedEdges();
+            for(Edge* edge : socket->getConnectedEdges()){
+                edge->remove();
+            }
         }
     }
 

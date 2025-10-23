@@ -65,7 +65,7 @@ private:
 
     Edge* dragEdge;
     Edge* previousEdge;
-    Socket* lastStartSocket;
+    Socket* dragStartSocket;
     //QList<QGraphicsItem*> previousSelection;
 
     QMap<qint64, QPair<QPointF, QPointF>> m_moveData;

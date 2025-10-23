@@ -276,11 +276,11 @@ QGraphicsItem* NodeEditorGraphicsView::getItemAtClick(QMouseEvent* event) {
 void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
     qDebug() << "Edge Drag Start";
     Socket* sock = socketItem->getSocket();
-    if(!sock){
-        qDebug() << "not socklewt";
+    if(!sock->allowedMultiEdges && !sock->getConnectedEdges().isEmpty()){
+       previousEdge = sock->getConnectedEdges().first();
     }
-    previousEdge = socketItem->getSocket()->getConnectedEdge();
-    lastStartSocket = socketItem->getSocket();
+ 
+    dragStartSocket = socketItem->getSocket();
 
     dragEdge = new Edge(m_grScene->getScene(), socketItem->getSocket(), nullptr, Edge::EDGE_TYPE_BEZIER);
 }
@@ -290,12 +290,12 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
     qDebug() << "Edge Drag END";
 
     if (auto endSocketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
-        if (endSocketItem->getSocket() != lastStartSocket) {
+        if (endSocketItem->getSocket() != dragStartSocket) {
 
             // capture what needs to be removed
             Edge* conflictingEdge = nullptr;
-            if (endSocketItem->getSocket()->hasConnectedEdge())
-                conflictingEdge = endSocketItem->getSocket()->getConnectedEdge();
+            if (!endSocketItem->getSocket()->allowedMultiEdges && !endSocketItem->getSocket()->getConnectedEdges().isEmpty())
+                conflictingEdge = endSocketItem->getSocket()->getConnectedEdges().first();
 
             Edge* prevEdge = previousEdge; // saved in dragStart
 
@@ -303,7 +303,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
             m_grScene->getScene()->getHistory()->push(
                 new CreateEdgeCommand(m_grScene->getScene(),
                                       dragEdge,
-                                      lastStartSocket,
+                                      dragStartSocket,
                                       endSocketItem->getSocket(),
                                       prevEdge,
                                       conflictingEdge)
@@ -323,7 +323,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
 
     // restore previousEdge if drag failed
     if (previousEdge) {
-        previousEdge->getStartSocket()->setConnectedEdge(previousEdge);
+        previousEdge->getStartSocket()->addEdge(previousEdge);
     }
 
     return false;

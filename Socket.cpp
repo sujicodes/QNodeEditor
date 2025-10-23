@@ -1,11 +1,12 @@
 #include "Socket.h"
+#include "Edge.h"
 #include "Node.h"
 #include "SocketGraphicsItem.h"
 #include "NodeGraphicsItem.h"
 
 
-Socket::Socket(Node* node, int index, int position)
-    : node(node), index(index), position(position)
+Socket::Socket(Node* node, int index, int position, bool allowMultiEdges)
+    : node(node), index(index), position(position), allowedMultiEdges(allowMultiEdges)
 {
 
     grSocket = new SocketGraphicsItem(this);
@@ -23,26 +24,26 @@ QPointF Socket::getSocketPosition() const {
     return res;
 }
 
-void Socket::setConnectedEdge(Edge* edge) {
-    this->edge = edge;
+void Socket::addEdge(Edge* edge) {
+    edges.append(edge);
 }
-
 
 bool Socket::hasConnectedEdge() const
 {
-    return edge != nullptr;
+    return !edges.isEmpty();
 }
 
-Edge* Socket::getConnectedEdge() const
+QList<Edge*> Socket::getConnectedEdges() const
 {
-    return edge;
+    return edges;
 }
 
 QJsonObject Socket::serialize() const {
     QJsonObject obj;
     obj["id"] = static_cast<qint64>(id);
     obj["index"] = index;
-    obj["position"] = position; // can be int, enum, or QString
+    obj["allowed_multi_edges"] = allowedMultiEdges;
+    obj["position"] = position;
 
     return obj;
 }
@@ -55,6 +56,27 @@ void Socket::deserialize(
     if(restoreId){
         id =  static_cast<qint64>(data["id"].toDouble());   // or .toVariant().toLongLong()
     }
+    allowedMultiEdges = data["allowed_multi_edges"].toBool(); 
     hashmap[data["id"].toDouble()] = this;
 
+}
+
+void Socket::removeEdge(Edge* edge)
+{
+    if (edges.contains(edge)) {
+        edges.removeOne(edge);
+    } else {
+        qWarning() << "!W:" << "Scene::removeEdge"
+                   << "Tried to remove edge" << edge
+                   << "but it's not in the list!";
+    }
+}
+
+void Socket::removeAllEdges()
+{
+    while (!edges.isEmpty()) {
+        Edge* edge = edges.takeFirst();  // Removes and returns the first element
+        if (edge)
+            edge->remove();              // Calls your edge cleanup method
+    }
 }
