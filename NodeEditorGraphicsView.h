@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <QWidget>
 #include <QMap>
+#include <QSet>
 
 class Edge;
 class Socket;
