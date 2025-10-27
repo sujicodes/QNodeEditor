@@ -234,8 +234,8 @@ public:
                 finalPos = originalPos + offset;
                 // Save relative offset for redo
                 relativeOffsets.push_back(finalPos - pasteCenter);
-                //restore the pasted node id to apply other history
-                nodeData["id"] = newNode->getId();
+                //restore the pasted node to apply other history
+                nodeData = newNode->serialize();
                 nodesArray[i] = nodeData;
             } else {
                 // Recreate same layout based on stored relative offsets
@@ -246,7 +246,6 @@ public:
             }
 
             newNode->setPos(finalPos.x(), finalPos.y());
-            scene->addNode(newNode);
             pastedNodes.push_back(newNode);
             offsetIndex++;
         }
