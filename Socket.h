@@ -44,12 +44,12 @@ public:
         ) override;
 
 private:
-    Node* node;
+    Node* node = nullptr;
     int index;
     int position;
     QList<Edge*> edges;
 
-    SocketGraphicsItem* grSocket;
+    SocketGraphicsItem* grSocket = nullptr;
     static constexpr bool DEBUG = false;
 };
 

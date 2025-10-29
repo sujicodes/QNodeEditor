@@ -63,9 +63,9 @@ private:
     QPointF lastLeftClickScenePos;
     QPointF lastSceneMousePosition;
 
-    Edge* dragEdge;
-    Edge* previousEdge;
-    Socket* dragStartSocket;
+    Edge* dragEdge = nullptr;
+    Edge* previousEdge = nullptr;
+    Socket* dragStartSocket = nullptr;;
     //QList<QGraphicsItem*> previousSelection;
 
     QMap<qint64, QPair<QPointF, QPointF>> m_moveData;

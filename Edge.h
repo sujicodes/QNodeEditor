@@ -37,9 +37,9 @@ public:
         ) override;
 
 private:
-    Scene* scene;
-    Socket* m_startSocket;
-    Socket* m_endSocket;
+    Scene* scene = nullptr;
+    Socket* m_startSocket = nullptr;
+    Socket* m_endSocket = nullptr;
 
     EdgeGraphicsPathItem* grEdge;
 };

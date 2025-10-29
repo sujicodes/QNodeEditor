@@ -317,6 +317,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
 
     // cancel preview edge if invalid
     if (dragEdge) {
+        dragStartSocket->removeEdge(dragEdge);
         dragEdge->remove();
         dragEdge = nullptr;
     }

@@ -107,8 +107,19 @@ public:
 
     void redo() override {
         // Remove conflicting edges first
-        if (m_conflictingEdge) { m_conflictingEdge->remove(); m_conflictingEdge = nullptr; }
-        if (m_previousEdge)    { m_previousEdge->remove();    m_previousEdge = nullptr; }
+        if (m_conflictingEdge) {
+            m_conflictingEdge->getStartSocket()->removeEdge(m_edge);
+            m_conflictingEdge->getEndSocket()->removeEdge(m_edge);
+            m_conflictingEdge->remove();
+            m_conflictingEdge = nullptr;
+        }
+        if (m_previousEdge){
+
+            m_previousEdge->getStartSocket()->removeEdge(m_edge);
+            m_previousEdge->getEndSocket()->removeEdge(m_edge);
+            m_previousEdge->remove();
+            m_previousEdge = nullptr;
+        }
 
         if (!m_edge) {
             m_edge = new Edge(m_scene);
@@ -131,6 +142,8 @@ public:
 
     void undo() override {
         if (m_edge) {
+            if( m_edge->getStartSocket()) m_edge->getStartSocket()->removeEdge(m_edge);
+            if(m_edge->getEndSocket()) m_edge->getEndSocket()->removeEdge(m_edge);
             m_edge->remove();
             m_edge = nullptr;
         }
