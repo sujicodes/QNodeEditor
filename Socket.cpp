@@ -55,6 +55,6 @@ void Socket::deserialize(
     if(restoreId){
         id =  static_cast<qint64>(data["id"].toDouble());   // or .toVariant().toLongLong()
     }
-    hashmap[id] = this;
+    hashmap[data["id"].toDouble()] = this;
 
 }

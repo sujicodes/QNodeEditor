@@ -256,13 +256,18 @@ public:
         // Create edges
         if (data.contains("edges")) {
             QJsonArray edgesArray = data["edges"].toArray();
-            for (auto val : edgesArray) {
-                QJsonObject edgeData = val.toObject();
+            for (int i = 0; i < edgesArray.size(); ++i) {
+                QJsonObject edgeData = edgesArray[i].toObject();
                 Edge* newEdge = new Edge(scene);
                 newEdge->deserialize(edgeData, hashmap, false);
                 scene->addEdge(newEdge);
                 pastedEdges.push_back(newEdge);
+                if (firstExecution) {
+                    edgesArray[i] = newEdge->serialize();
+
+                }
             }
+            data["edges"] = edgesArray;
         }
 
         firstExecution = false;
