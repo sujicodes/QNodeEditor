@@ -1,8 +1,9 @@
-#ifndef SOCKET_H
+ #ifndef SOCKET_H
 #define SOCKET_H
 
 #include <QObject>
 #include <QGraphicsItem>
+#include <QList>
 #include "SocketGraphicsItem.h"
 #include "Serializable.h"
 
@@ -12,7 +13,7 @@ class Edge;
 
 class Socket : public Serializable {
 public:
-    Socket(Node* node, int index = 0, int position = LEFT_TOP);
+    Socket(Node* node, int index = 0, int position = LEFT_TOP, bool allowMultiEdges = false);
 
     SocketGraphicsItem* getGraphicsSocket() const { return grSocket; }
     static const int LEFT_TOP = 1;
@@ -20,7 +21,9 @@ public:
     static const int RIGHT_TOP = 3;
     static const int RIGHT_BOTTOM = 4;
 
-    void setConnectedEdge(Edge* edge = nullptr);
+    bool allowedMultiEdges = false;
+
+    void addEdge(Edge* edge);
 
     int getIndex() const { return index; }
     int getPosition() const { return position; }
@@ -28,7 +31,10 @@ public:
     QPointF getSocketPosition() const;
 
     bool hasConnectedEdge() const;
-    Edge* getConnectedEdge() const;
+    QList<Edge*> getConnectedEdges() const;
+
+    void removeEdge(Edge* edge);
+    void removeAllEdges();
 
     QJsonObject serialize() const override;
     void deserialize(
@@ -38,12 +44,12 @@ public:
         ) override;
 
 private:
-    Node* node;
+    Node* node = nullptr;
     int index;
     int position;
-    Edge* edge = nullptr;
+    QList<Edge*> edges;
 
-    SocketGraphicsItem* grSocket;
+    SocketGraphicsItem* grSocket = nullptr;
     static constexpr bool DEBUG = false;
 };
 

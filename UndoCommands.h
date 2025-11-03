@@ -107,8 +107,15 @@ public:
 
     void redo() override {
         // Remove conflicting edges first
-        if (m_conflictingEdge) { m_conflictingEdge->remove(); m_conflictingEdge = nullptr; }
-        if (m_previousEdge)    { m_previousEdge->remove();    m_previousEdge = nullptr; }
+        if (m_conflictingEdge) {
+            m_conflictingEdge->remove();
+            m_conflictingEdge = nullptr;
+        }
+        if (m_previousEdge){
+
+            m_previousEdge->remove();
+            m_previousEdge = nullptr;
+        }
 
         if (!m_edge) {
             m_edge = new Edge(m_scene);
