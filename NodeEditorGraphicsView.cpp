@@ -277,7 +277,7 @@ void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
     qDebug() << "Edge Drag Start";
     Socket* sock = socketItem->getSocket();
     if(!sock->allowedMultiEdges && !sock->getConnectedEdges().isEmpty()){
-       previousEdge = sock->getConnectedEdges().first();
+        previousEdge = sock->getConnectedEdges().first();
     }
  
     dragStartSocket = socketItem->getSocket();
@@ -294,9 +294,17 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
 
             // capture what needs to be removed
             Edge* conflictingEdge = nullptr;
-            if (!endSocketItem->getSocket()->allowedMultiEdges && !endSocketItem->getSocket()->getConnectedEdges().isEmpty())
+            if (!endSocketItem->getSocket()->allowedMultiEdges && !endSocketItem->getSocket()->getConnectedEdges().isEmpty()){
                 conflictingEdge = endSocketItem->getSocket()->getConnectedEdges().first();
-
+                // cancel if edge being created is of the same input and output
+                if (conflictingEdge->getStartSocket() == dragStartSocket) {
+                    if (dragEdge) {
+                        dragEdge->remove();
+                        dragEdge = nullptr;
+                    }
+                    return false;
+                }
+            }
             Edge* prevEdge = previousEdge; // saved in dragStart
 
             // Push proper undo command that owns this edge + conflicts
@@ -317,7 +325,6 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
 
     // cancel preview edge if invalid
     if (dragEdge) {
-        dragStartSocket->removeEdge(dragEdge);
         dragEdge->remove();
         dragEdge = nullptr;
     }
