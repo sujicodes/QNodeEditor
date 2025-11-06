@@ -114,7 +114,6 @@ void Edge::deserialize(
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
-        hashmap[id] = this;
     }
 
     qint64 startId = static_cast<qint64>(data["start"].toDouble());
