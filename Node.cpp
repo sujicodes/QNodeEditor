@@ -184,7 +184,7 @@ void Node::deserialize(
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
-        hashmap[data["id"].toDouble()] = this;
+        hashmap[id] = this;
     }
     // Position
     setPos(data["pos_x"].toDouble(), data["pos_y"].toDouble());
