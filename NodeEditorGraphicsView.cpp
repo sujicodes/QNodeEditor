@@ -9,6 +9,7 @@
 #include "NodeGraphicsItem.h"
 #include "NodeEditorGraphicsView.h"
 #include "NodeGraphicsScene.h"
+#include "NodeSelectorWidget.h"
 #include "Scene.h"
 #include "Socket.h"
 #include "SocketGraphicsItem.h"
@@ -69,6 +70,9 @@ void NodeEditorGraphicsView::initUI() {
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setDragMode(QGraphicsView::RubberBandDrag);
+    nodePopup = new NodePopupWidget(this);
+    QStringList nodeTypes = { "Blur", "Grade", "Transform", "Merge", "Read", "Write", "Roto", "TimeOffset" };
+    nodePopup->setNodeList(nodeTypes);
 }
 
 void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
@@ -115,7 +119,16 @@ void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
     }
     else {
     */
-        QGraphicsView::keyPressEvent(event);  // call base class
+    if (event->key() == Qt::Key_1) {
+        // Show popup at mouse position
+        QPoint pos = QCursor::pos();
+        nodePopup->move(pos);
+        nodePopup->show();
+        nodePopup->raise();
+        nodePopup->activateWindow();
+        return;
+    }
+    QGraphicsView::keyPressEvent(event);  // call base class
 }
 void NodeEditorGraphicsView::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::MiddleButton) {

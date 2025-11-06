@@ -47,6 +47,23 @@ private:
     NodeEditorWidget* nodeEditorWidget;
     bool isModified() const;
     bool maybeSave();
+
+    void createActions();
+    void createMenus();
+
+    // Actions
+    QAction *actNew;
+    QAction *actOpen;
+    QAction *actSave;
+    QAction *actSaveAs;
+    QAction *actExit;
+
+    QAction *actUndo;
+    QAction *actRedo;
+    QAction *actCut;
+    QAction *actCopy;
+    QAction *actPaste;
+    QAction *actDelete;
 };
 
 #endif // NODEEDITORWINDOW_H

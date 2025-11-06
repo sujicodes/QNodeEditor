@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QCloseEvent>
+#include "NodeSelectorWidget.h"
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -39,29 +40,9 @@ QAction* NodeEditorWindow::createAct(const QString &name,
 
 void NodeEditorWindow::initUI()
 {
-    QMenuBar *menubar = menuBar();
-
-    // File menu
-    QMenu *fileMenu = menubar->addMenu("&File");
-    fileMenu->addAction(createAct("&New", "Ctrl+N", "Create new graph", this, SLOT(onFileNew())));
-    fileMenu->addSeparator();
-    fileMenu->addAction(createAct("&Open", "Ctrl+O", "Open file", this, SLOT(onFileOpen())));
-    fileMenu->addAction(createAct("&Save", "Ctrl+S", "Save file", this, SLOT(onFileSave())));
-    fileMenu->addAction(createAct("Save &As...", "Ctrl+Shift+S", "Save file as...", this, SLOT(onFileSaveAs())));
-    fileMenu->addSeparator();
-    fileMenu->addAction(createAct("E&xit", "Ctrl+Q", "Exit application", this, SLOT(close())));
-
-    // Edit menu
-    QMenu *editMenu = menubar->addMenu("&Edit");
-    editMenu->addAction(createAct("Cu&t", "Ctrl+X", "Cut to clipboard", this, SLOT(onEditCut())));
-    editMenu->addAction(createAct("&Copy", "Ctrl+C", "Copy to clipboard", this, SLOT(onEditCopy())));
-    editMenu->addAction(createAct("&Paste", "Ctrl+V", "Paste from clipboard", this, SLOT(onEditPaste())));
-    editMenu->addSeparator();
-    editMenu->addAction(createAct("&Redo", "Ctrl+Shift+Z", "Redo last operation", this, SLOT(onEditRedo())));
-    editMenu->addAction(createAct("&Undo", "Ctrl+Z", "Undo last operation", this, SLOT(onEditUndo())));
-    editMenu->addSeparator();
-    editMenu->addAction(createAct("&Delete", "Del", "Delete selected items", this, SLOT(onEditDelete())));
-
+    
+    createActions();
+    createMenus();
     // Node editor widget
     nodeEditorWidget = new NodeEditorWidget(this);
     nodeEditorWidget->getScene()->addHasBeenModifiedListener([this]() {
@@ -76,11 +57,98 @@ void NodeEditorWindow::initUI()
 
     connect(nodeEditorWidget->getGraphicsView(), &NodeEditorGraphicsView::scenePosChanged, this, &NodeEditorWindow::onScenePosChanged);
 
+
+
+    //connect(nodePopup, &NodePopup::nodeChosen, this, &NodeEditorWindow::onNodeChosen);
+
+
     // Window properties
     setGeometry(200, 200, 800, 600);
     setWindowTitle("Node Editor");
     changeTitle();
     show();
+}
+
+void NodeEditorWindow::createActions()
+{
+    actNew = new QAction(tr("&New"), this);
+    actNew->setShortcut(QKeySequence::New);
+    actNew->setStatusTip(tr("Create new graph"));
+    connect(actNew, &QAction::triggered, this, &NodeEditorWindow::onFileNew);
+
+    actOpen = new QAction(tr("&Open"), this);
+    actOpen->setShortcut(QKeySequence::Open);
+    actOpen->setStatusTip(tr("Open file"));
+    connect(actOpen, &QAction::triggered, this, &NodeEditorWindow::onFileOpen);
+
+    actSave = new QAction(tr("&Save"), this);
+    actSave->setShortcut(QKeySequence::Save);
+    actSave->setStatusTip(tr("Save file"));
+    connect(actSave, &QAction::triggered, this, &NodeEditorWindow::onFileSave);
+
+    actSaveAs = new QAction(tr("Save &As..."), this);
+    actSaveAs->setShortcut(QKeySequence("Ctrl+Shift+S"));
+    actSaveAs->setStatusTip(tr("Save file as..."));
+    connect(actSaveAs, &QAction::triggered, this, &NodeEditorWindow::onFileSaveAs);
+
+    actExit = new QAction(tr("E&xit"), this);
+    actExit->setShortcut(QKeySequence::Quit);
+    actExit->setStatusTip(tr("Exit application"));
+    connect(actExit, &QAction::triggered, this, &NodeEditorWindow::close);
+
+    actUndo = new QAction(tr("&Undo"), this);
+    actUndo->setShortcut(QKeySequence::Undo);
+    actUndo->setStatusTip(tr("Undo last operation"));
+    connect(actUndo, &QAction::triggered, this, &NodeEditorWindow::onEditUndo);
+
+    actRedo = new QAction(tr("&Redo"), this);
+    actRedo->setShortcut(QKeySequence("Ctrl+Shift+Z"));
+    actRedo->setStatusTip(tr("Redo last operation"));
+    connect(actRedo, &QAction::triggered, this, &NodeEditorWindow::onEditRedo);
+
+    actCut = new QAction(tr("Cu&t"), this);
+    actCut->setShortcut(QKeySequence::Cut);
+    actCut->setStatusTip(tr("Cut to clipboard"));
+    connect(actCut, &QAction::triggered, this, &NodeEditorWindow::onEditCut);
+
+    actCopy = new QAction(tr("&Copy"), this);
+    actCopy->setShortcut(QKeySequence::Copy);
+    actCopy->setStatusTip(tr("Copy to clipboard"));
+    connect(actCopy, &QAction::triggered, this, &NodeEditorWindow::onEditCopy);
+
+    actPaste = new QAction(tr("&Paste"), this);
+    actPaste->setShortcut(QKeySequence::Paste);
+    actPaste->setStatusTip(tr("Paste from clipboard"));
+    connect(actPaste, &QAction::triggered, this, &NodeEditorWindow::onEditPaste);
+
+    actDelete = new QAction(tr("&Delete"), this);
+    actDelete->setShortcut(QKeySequence::Delete);
+    actDelete->setStatusTip(tr("Delete selected items"));
+    connect(actDelete, &QAction::triggered, this, &NodeEditorWindow::onEditDelete);
+}
+
+void NodeEditorWindow::createMenus()
+{
+    QMenuBar *menubar = menuBar();
+
+    QMenu *fileMenu = menubar->addMenu(tr("&File"));
+    fileMenu->addAction(actNew);
+    fileMenu->addSeparator();
+    fileMenu->addAction(actOpen);
+    fileMenu->addAction(actSave);
+    fileMenu->addAction(actSaveAs);
+    fileMenu->addSeparator();
+    fileMenu->addAction(actExit);
+
+    QMenu *editMenu = menubar->addMenu(tr("&Edit"));
+    editMenu->addAction(actUndo);
+    editMenu->addAction(actRedo);
+    editMenu->addSeparator();
+    editMenu->addAction(actCut);
+    editMenu->addAction(actCopy);
+    editMenu->addAction(actPaste);
+    editMenu->addSeparator();
+    editMenu->addAction(actDelete);
 }
 
 void NodeEditorWindow::onScenePosChanged(int x, int y)

@@ -1,6 +1,7 @@
 #ifndef NODEEDITORGRAPHICSVIEW_H
 #define NODEEDITORGRAPHICSVIEW_H
 
+#include "NodeSelectorWidget.h"
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QWidget>
@@ -74,6 +75,7 @@ private:
 
     QSet<qint64> previousNodeIds;
     QSet<qint64> previousEdgeIds;
+    NodePopupWidget *nodePopup;
 
 };
 
