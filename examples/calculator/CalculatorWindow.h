@@ -25,8 +25,7 @@ private slots:
     void about();
     void setActiveSubWindow(QWidget* window);
     void onFileNew() override;
-    bool onFileSave() override;
-    bool onFileSaveAs() override;
+    NodeEditorWidget* getCurrentNodeEditorWidget() const override;
     void onFileOpen() override;
 
 private:

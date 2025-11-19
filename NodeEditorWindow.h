@@ -29,10 +29,10 @@ private slots:
     void onEditDelete();
 
     void setTitle();
-    NodeEditorWidget* getCurrentNodeEditorWidget() const;
 
 protected:
     void closeEvent(QCloseEvent* event) override;
+    virtual NodeEditorWidget* getCurrentNodeEditorWidget() const;
     QLabel* statusMousePos;
     QString filename;
     bool isModified() const;

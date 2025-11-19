@@ -10,7 +10,6 @@
 #include <QFileDialog>
 
 CalculatorWindow::CalculatorWindow(QWidget *parent)
-    : NodeEditorWindow(parent)
 {
     initUI();
 }
@@ -33,12 +32,16 @@ void CalculatorWindow::initUI()
     // Connect MDI signals
     connect(mdiArea, &QMdiArea::subWindowActivated, this, &CalculatorWindow::updateMenus);
 
+    windowMapper = new QSignalMapper(this);
+    connect(windowMapper, SIGNAL(mapped(QWidget*)),
+            this, SLOT(setActiveSubWindow(QWidget*)));
+
+
     createActions();
     createMenus();
     createToolBars();
     createStatusBar();
     createNodesDock();
-
     updateMenus();
 }
 
@@ -98,7 +101,7 @@ void CalculatorWindow::updateMenus()
 {
     qDebug() << "update Menus";
 
-    QWidget *active = activeMdiChild();
+    QWidget *active = getCurrentNodeEditorWidget();
     bool hasMdiChild = (active != nullptr);
 
     // Enable/disable actions
@@ -107,10 +110,11 @@ void CalculatorWindow::updateMenus()
     if (closeAllAct)   closeAllAct->setEnabled(hasMdiChild);
     if (tileAct)       tileAct->setEnabled(hasMdiChild);
     if (cascadeAct)    cascadeAct->setEnabled(hasMdiChild);
-    if (nextAct)       nextAct->setEnabled(hasMdiChild);
+    if (nextAct)       nextAct->setEnabled(true);
     if (previousAct)   previousAct->setEnabled(hasMdiChild);
-    if (actSave)    actSave->setEnabled(hasMdiChild);
-    if (actSaveAs)  actSaveAs->setEnabled(hasMdiChild);
+    actSave->setEnabled(false);
+    actSaveAs->setEnabled(false);
+    qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
 
     if (separatorAct)  separatorAct->setVisible(hasMdiChild);
 }
@@ -186,6 +190,7 @@ void CalculatorWindow::updateWindowMenu()
     }
 }
 
+
 void CalculatorWindow::about()
 {
     QMessageBox::about(this,
@@ -248,11 +253,11 @@ QMdiSubWindow* CalculatorWindow::createMdiChild()
     return subwnd;
 }
 
-QWidget* CalculatorWindow::activeMdiChild()
+NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
 {
     QMdiSubWindow *activeSubWindow = mdiArea->activeSubWindow();
     if (activeSubWindow)
-        return activeSubWindow->widget();  // return inner widget (your node editor)
+        return dynamic_cast<NodeEditorWidget*>(activeSubWindow->widget());  // return inner widget (your node editor)
     return nullptr;
 }
 
@@ -267,43 +272,6 @@ void CalculatorWindow::onFileNew()
     } catch (...) {
         qWarning() << "Unknown exception while creating new MDI child.";
     }
-}
-
-bool CalculatorWindow::onFileSave()
-{
-    CalculatorSubWindow* currentNodeEditor = dynamic_cast<CalculatorSubWindow*>(activeMdiChild());
-    if (currentNodeEditor)
-    {
-        if (!currentNodeEditor->isFilenameSet())
-            return onFileSaveAs();
-        else
-        {
-            currentNodeEditor->fileSave(); // uses existing filename
-            statusBar()->showMessage(
-                tr("Successfully saved %1").arg(currentNodeEditor->getFilename()),
-                5000);
-            currentNodeEditor->setTitle();
-            return true;
-        }
-    }
-    return false;
-}
-
-bool CalculatorWindow::onFileSaveAs()
-{
-    CalculatorSubWindow* currentNodeEditor = dynamic_cast<CalculatorSubWindow*>(activeMdiChild());
-    if (currentNodeEditor)
-    {
-        QString fname = QFileDialog::getSaveFileName(this, tr("Save graph file"));
-        if (fname.isEmpty())
-            return false;
-
-        currentNodeEditor->fileSave(fname);
-        currentNodeEditor->setTitle();
-        statusBar()->showMessage(tr("Successfully saved as %1").arg(fname), 5000);
-        return true;
-    }
-    return false;
 }
 
 void CalculatorWindow::onFileOpen()
@@ -348,18 +316,11 @@ QMdiSubWindow* CalculatorWindow::findMdiChild(const QString& filename)
 
     for (QMdiSubWindow* window : subWindows)
     {
-        // Assume each subwindow contains a widget with a 'filename' property
         QWidget* childWidget = window->widget();
-
-        // Option 1: if your widget has a public member or getter called filename
         auto nodeEditor = qobject_cast<NodeEditorWidget*>(childWidget); // example type
         if (nodeEditor && nodeEditor->getFilename() == filename)
             return window;
 
-        // Option 2: if you're storing filename as a dynamic Qt property
-        // QVariant prop = childWidget->property("filename");
-        // if (prop.isValid() && prop.toString() == filename)
-        //     return window;
     }
 
     return nullptr; // None in Python
