@@ -46,7 +46,7 @@ void NodeEditorWindow::initUI()
     // Node editor widget
     nodeEditorWidget = new NodeEditorWidget(this);
     nodeEditorWidget->getScene()->addHasBeenModifiedListener([this]() {
-        this->changeTitle();
+        this->setTitle();
     });
     setCentralWidget(nodeEditorWidget);
 
@@ -65,7 +65,7 @@ void NodeEditorWindow::initUI()
     // Window properties
     setGeometry(200, 200, 800, 600);
     setWindowTitle("Node Editor");
-    changeTitle();
+    setTitle();
     show();
 }
 
@@ -156,12 +156,15 @@ void NodeEditorWindow::onScenePosChanged(int x, int y)
     statusMousePos->setText(QString("Scene Pos: [%1, %2]").arg(x).arg(y));
 }
 
+NodeEditorWidget* NodeEditorWindow::getCurrentNodeEditorWidget() const{
+    return dynamic_cast<NodeEditorWidget*>(centralWidget());
+}
+
 void NodeEditorWindow::onFileNew()
 {
     if (maybeSave()){
-        nodeEditorWidget->getScene()->clearScene();
-        filename.clear();
-        changeTitle();
+        getCurrentNodeEditorWidget()->getScene()->clearScene();
+        setTitle();
     }
 }
 
@@ -173,20 +176,20 @@ void NodeEditorWindow::onFileOpen()
 
         QFile file(fname);
         if (file.exists()) {
-            nodeEditorWidget->getScene()->loadFromFile(fname);
-            filename = fname;
-            changeTitle();
+            getCurrentNodeEditorWidget()->fileLoad(fname);
+            setTitle();
         }
     }
 }
 
 bool NodeEditorWindow::onFileSave()
 {
-    if (filename.isEmpty()) {
+    if (getCurrentNodeEditorWidget()->getFilename().isEmpty()) {
         return onFileSaveAs();
     }
-    nodeEditorWidget->getScene()->saveToFile(filename);
-    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(filename));
+    getCurrentNodeEditorWidget()->fileSave();
+    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(getCurrentNodeEditorWidget()->getFilename()));
+    setTitle();
     return true;
 }
 
@@ -194,24 +197,24 @@ bool NodeEditorWindow::onFileSaveAs()
 {
     QString fname = QFileDialog::getSaveFileName(this, "Save graph to file");
     if (fname.isEmpty()) return false;
-    filename = fname;
-    onFileSave();
+    getCurrentNodeEditorWidget()->fileSave(fname);
+    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(getCurrentNodeEditorWidget()->getFilename()));
     return true;
 }
 
 void NodeEditorWindow::onEditUndo()
 {
-    nodeEditorWidget->getScene()->getHistory()->undo();
+    getCurrentNodeEditorWidget()->getScene()->getHistory()->undo();
 }
 
 void NodeEditorWindow::onEditRedo()
 {
-    nodeEditorWidget->getScene()->getHistory()->redo();
+    getCurrentNodeEditorWidget()->getScene()->getHistory()->redo();
 }
 
 void NodeEditorWindow::onEditDelete()
 {
-    NodeEditorGraphicsView* view = nodeEditorWidget->getGraphicsView();
+    NodeEditorGraphicsView* view = getCurrentNodeEditorWidget()->getGraphicsView();
     if (view) {
         // Assuming NodeEditorGraphicsView has deleteSelected()
         view->deleteSelected();
@@ -220,7 +223,7 @@ void NodeEditorWindow::onEditDelete()
 
 void NodeEditorWindow::onEditCut()
 {
-    QJsonObject data = nodeEditorWidget->getScene()->serializeSelected(true);
+    QJsonObject data = getCurrentNodeEditorWidget()->getScene()->serializeSelected(true);
     QJsonDocument doc(data);
     QString strData = doc.toJson(QJsonDocument::Indented);
     qWarning() << "copying: "<< strData;
@@ -230,7 +233,7 @@ void NodeEditorWindow::onEditCut()
 
 void NodeEditorWindow::onEditCopy()
 {
-    QJsonObject data = nodeEditorWidget->getScene()->serializeSelected(false);
+    QJsonObject data = getCurrentNodeEditorWidget()->getScene()->serializeSelected(false);
     QJsonDocument doc(data);
     QString strData = doc.toJson(QJsonDocument::Indented);
 
@@ -261,25 +264,16 @@ void NodeEditorWindow::onEditPaste()
         return;
     }
 
-    nodeEditorWidget->getScene()->deserializeFromClipboard(data);
+    getCurrentNodeEditorWidget()->getScene()->deserializeFromClipboard(data);
 }
 
 
-void NodeEditorWindow::changeTitle()
+void NodeEditorWindow::setTitle()
 {
     QString title = "Node Editor - ";
-
-    if (filename.isEmpty()) {
-        title += "New";
-    } else {
-        title += QFileInfo(filename).fileName();
-    }
-
-    if (isModified()) {
-        title += "*";
-    }
-
+    title += getCurrentNodeEditorWidget()->getUserFriendlyFilename();
     setWindowTitle(title);
+
 }
 
 void NodeEditorWindow::closeEvent(QCloseEvent* event)
@@ -293,7 +287,7 @@ void NodeEditorWindow::closeEvent(QCloseEvent* event)
 
 bool NodeEditorWindow::isModified() const
 {
-    return nodeEditorWidget->getScene()->hasBeenModified();
+    return getCurrentNodeEditorWidget()->getScene()->hasBeenModified();
 }
 
 bool NodeEditorWindow::maybeSave()
@@ -303,8 +297,8 @@ bool NodeEditorWindow::maybeSave()
 
     QMessageBox::StandardButton res = QMessageBox::warning(
         this,
-        tr("Scene Modified"),
-        tr("The scene has been modified.\nDo you want to save your changes?"),
+        QString("Scene Modified"),
+        QString("The scene has been modified.\nDo you want to save your changes?"),
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel
         );
 

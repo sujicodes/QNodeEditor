@@ -3,6 +3,9 @@
 #include "Scene.h"
 #include "Node.h"
 #include "Edge.h"
+#include <qapplication.h>
+#include <qfileinfo.h>
+#include <QMessageBox>
 
 NodeEditorWidget::NodeEditorWidget(QWidget *parent)
     : QWidget(parent)
@@ -31,4 +34,79 @@ NodeEditorWidget::NodeEditorWidget(QWidget *parent)
     layout->addWidget(view);
 
     layout->addWidget(view);
+}
+
+bool NodeEditorWidget::isModified() const
+{
+    return scene && scene->hasBeenModified();
+    
+}
+
+bool NodeEditorWidget::isFilenameSet() const
+{
+    return !filename.isEmpty();
+}
+
+QString NodeEditorWidget::getFilename() const{
+    return filename;
+}
+
+QString NodeEditorWidget::getUserFriendlyFilename() const
+{
+    QString name;
+
+    if (isFilenameSet()) {
+        QFileInfo fi(filename);
+        name = fi.fileName();
+    } else {
+        name = "New Graph";
+    }
+
+    if (isModified())
+        name += "*";
+
+    return name;
+}
+
+void NodeEditorWidget::fileNew()
+{
+    if (scene)
+        scene->clearScene();
+
+    filename.clear();
+}
+
+bool NodeEditorWidget::fileLoad(const QString& name)
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QString errorMsg;
+    bool ok = scene && scene->loadFromFile(name, &errorMsg);
+
+    QApplication::restoreOverrideCursor();
+
+    if (!ok) {
+        QMessageBox::warning(
+            this,
+            tr("Error loading %1").arg(QFileInfo(filename).fileName()),
+            errorMsg.isEmpty() ? tr("Unknown error") : errorMsg
+            );
+        return false;
+    }
+
+    filename = name;
+    return true;
+}
+
+bool NodeEditorWidget::fileSave(const QString& name)
+{
+    // When a non-empty filename is passed, update stored filename
+    if (!name.isEmpty()) {
+        this->filename = name;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    scene->saveToFile(this->filename);
+    QApplication::restoreOverrideCursor();
+
+    return true;
 }

@@ -15,7 +15,11 @@ CalculatorSubWindow::CalculatorSubWindow(QWidget *parent)
     // Connect scene modification signal to update title dynamically
     // (Assuming your NodeEditorScene has a "hasBeenModified" or similar signal)
     if (getScene()) {
-        getScene()->addHasBeenModifiedListener(setTitle());
+        getScene()->addHasBeenModifiedListener(
+            [this]() {
+                this->setTitle();
+            }
+        );
     }
 }
 

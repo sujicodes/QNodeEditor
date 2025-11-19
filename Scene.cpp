@@ -146,11 +146,12 @@ bool Scene::saveToFile(const QString& filename)
     return true;
 }
 
-bool Scene::loadFromFile(const QString& filename)
+bool Scene::loadFromFile(const QString& filename,  QString* errorMsg)
 {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Failed to open file for reading:" << filename;
+        if (errorMsg)
+            *errorMsg = QString("Failed to open file: %1").arg(filename);
         return false;
     }
 
@@ -160,17 +161,18 @@ bool Scene::loadFromFile(const QString& filename)
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(rawData, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "Failed to parse JSON:" << parseError.errorString();
+        if (errorMsg)
+            *errorMsg = QString("Failed to parse JSON: %1").arg(parseError.errorString());
         return false;
     }
 
     if (!doc.isObject()) {
-        qWarning() << "Invalid JSON format: root is not an object";
+        if (errorMsg)
+            *errorMsg = QString("Invalid JSON format: root is not an object");
         return false;
     }
-    std::unordered_map<qint64, Serializable*> hashmap = {};
 
-    // deserialize() must accept a QJsonObject to restore nodes/edges
+    std::unordered_map<qint64, Serializable*> hashmap;
     deserialize(doc.object(), hashmap);
     setHasBeenModified(false);
     return true;
@@ -267,7 +269,8 @@ Edge* Scene::getEdgeById(qint64 id) const {
     return nullptr;
 }
 
-bool Scene::hasBeenModified() const {
+bool Scene::hasBeenModified() const{
+    return false;
     return m_hasBeenModified;
 }
 

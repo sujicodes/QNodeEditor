@@ -28,7 +28,7 @@ public:
     QUndoStack*  getHistory() const { return history; }
     void clearScene();
 
-    bool loadFromFile(const QString& filename);
+    bool loadFromFile(const QString& filename,  QString* errorMsg);
     bool saveToFile(const QString& filename);
 
     QJsonObject serialize() const override;

@@ -24,6 +24,10 @@ private slots:
     void updateWindowMenu();
     void about();
     void setActiveSubWindow(QWidget* window);
+    void onFileNew() override;
+    bool onFileSave() override;
+    bool onFileSaveAs() override;
+    void onFileOpen() override;
 
 private:
     void initUI();
@@ -34,12 +38,14 @@ private:
     void createNodesDock();
     QMdiSubWindow* createMdiChild();
     QWidget* activeMdiChild();
+    QMdiSubWindow* findMdiChild(const QString& filename);
 
     QMdiArea *mdiArea = nullptr;
     QDockWidget *itemsDock = nullptr;
     QListWidget *listWidget = nullptr;
 
     // Actions
+    QAction *newAct = nullptr;
     QAction *closeAct = nullptr;
     QAction *closeAllAct = nullptr;
     QAction *tileAct = nullptr;

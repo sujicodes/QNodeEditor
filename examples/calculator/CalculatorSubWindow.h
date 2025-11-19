@@ -1,10 +1,17 @@
 #ifndef CALCULATORSUBWINDOW_H
 #define CALCULATORSUBWINDOW_H
+#include "../../NodeEditorWidget.h"
+#include <QObject>
 
-class CalculatorSubWindow
+class CalculatorSubWindow : public NodeEditorWidget
 {
+    Q_OBJECT
+
 public:
-    CalculatorSubWindow();
+    explicit CalculatorSubWindow(QWidget *parent = nullptr);
+
+public slots:
+    void setTitle();
 };
 
 #endif // CALCULATORSUBWINDOW_H

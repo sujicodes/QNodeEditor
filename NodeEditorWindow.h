@@ -17,10 +17,10 @@ public:
 private slots:
     void onScenePosChanged(int x, int y);
 
-    void onFileNew();
-    void onFileOpen();
-    bool onFileSave();
-    bool onFileSaveAs();
+    virtual void onFileNew();
+    virtual void onFileOpen();
+    virtual bool onFileSave();
+    virtual bool onFileSaveAs();
     void onEditCut();
     void onEditCopy();
     void onEditPaste();
@@ -28,23 +28,13 @@ private slots:
     void onEditRedo();
     void onEditDelete();
 
-    void changeTitle();
+    void setTitle();
+    NodeEditorWidget* getCurrentNodeEditorWidget() const;
 
 protected:
     void closeEvent(QCloseEvent* event) override;
-
-private:
-    QAction* createAct(const QString &name,
-                       const QString &shortcut,
-                       const QString &tooltip,
-                       const QObject* receiver,
-                       const char* member);
-
-    void initUI();
-
-    QString filename;
     QLabel* statusMousePos;
-    NodeEditorWidget* nodeEditorWidget;
+    QString filename;
     bool isModified() const;
     bool maybeSave();
 
@@ -64,6 +54,17 @@ private:
     QAction *actCopy;
     QAction *actPaste;
     QAction *actDelete;
+
+private:
+    QAction* createAct(const QString &name,
+                       const QString &shortcut,
+                       const QString &tooltip,
+                       const QObject* receiver,
+                       const char* member);
+
+    void initUI();
+    NodeEditorWidget* nodeEditorWidget = nullptr;
+    
 };
 
 #endif // NODEEDITORWINDOW_H
