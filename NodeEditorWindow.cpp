@@ -57,16 +57,8 @@ void NodeEditorWindow::initUI()
 
     connect(nodeEditorWidget->getGraphicsView(), &NodeEditorGraphicsView::scenePosChanged, this, &NodeEditorWindow::onScenePosChanged);
 
-
-
     //connect(nodePopup, &NodePopup::nodeChosen, this, &NodeEditorWindow::onNodeChosen);
 
-
-    // Window properties
-    setGeometry(200, 200, 800, 600);
-    setWindowTitle("Node Editor");
-    setTitle();
-    show();
 }
 
 void NodeEditorWindow::createActions()
@@ -157,6 +149,7 @@ void NodeEditorWindow::onScenePosChanged(int x, int y)
 }
 
 NodeEditorWidget* NodeEditorWindow::getCurrentNodeEditorWidget() const{
+    qDebug() << "im base:";
     return dynamic_cast<NodeEditorWidget*>(centralWidget());
 }
 

@@ -58,6 +58,7 @@ private:
     QMenu *windowMenu = nullptr;
     QMenu *helpMenu = nullptr;
     QSignalMapper *windowMapper;
+    QMdiSubWindow* lastActiveSubWindow = nullptr;
 };
 
 #endif // CALCULATORWINDOW_H

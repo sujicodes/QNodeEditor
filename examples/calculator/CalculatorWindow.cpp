@@ -30,7 +30,10 @@ void CalculatorWindow::initUI()
     setCentralWidget(mdiArea);
 
     // Connect MDI signals
-    connect(mdiArea, &QMdiArea::subWindowActivated, this, &CalculatorWindow::updateMenus);
+    connect(mdiArea, &QMdiArea::subWindowActivated, this, [this](QMdiSubWindow* sub){
+        lastActiveSubWindow = sub;
+        updateMenus();
+    });
 
     windowMapper = new QSignalMapper(this);
     connect(windowMapper, SIGNAL(mapped(QWidget*)),
@@ -43,12 +46,16 @@ void CalculatorWindow::initUI()
     createStatusBar();
     createNodesDock();
     updateMenus();
+
+    setGeometry(200, 200, 800, 600);
+    setWindowTitle("Node Editor");
+    show();
 }
 
 void CalculatorWindow::createActions()
 {
 
-    NodeEditorWindow::createActions();   // IMPORTANT
+    //NodeEditorWindow::createActions();   // IMPORTANT
 
     // --- now subclass actions ---
     closeAct = new QAction(tr("Cl&ose"), this);
@@ -112,8 +119,8 @@ void CalculatorWindow::updateMenus()
     if (cascadeAct)    cascadeAct->setEnabled(hasMdiChild);
     if (nextAct)       nextAct->setEnabled(true);
     if (previousAct)   previousAct->setEnabled(hasMdiChild);
-    actSave->setEnabled(false);
-    actSaveAs->setEnabled(false);
+    actSave->setEnabled(hasMdiChild);
+    actSaveAs->setEnabled(hasMdiChild);
     qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
 
     if (separatorAct)  separatorAct->setVisible(hasMdiChild);
@@ -255,9 +262,11 @@ QMdiSubWindow* CalculatorWindow::createMdiChild()
 
 NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
 {
-    QMdiSubWindow *activeSubWindow = mdiArea->activeSubWindow();
-    if (activeSubWindow)
-        return dynamic_cast<NodeEditorWidget*>(activeSubWindow->widget());  // return inner widget (your node editor)
+    qDebug() << "im sub:";
+    QMdiSubWindow* sub = mdiArea->activeSubWindow();
+    if (!sub) sub = lastActiveSubWindow;  // fallback to last active
+    if (sub)
+        return dynamic_cast<NodeEditorWidget*>(sub->widget());
     return nullptr;
 }
 
