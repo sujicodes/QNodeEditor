@@ -47,6 +47,7 @@ public:
     bool hasBeenModified() const;
     void setHasBeenModified(bool value);
     void addHasBeenModifiedListener(const std::function<void()>& callback);
+    QList<QGraphicsItem*> getSelectedItems() const { return _graphicsScene->selectedItems(); }
     
 
 private:

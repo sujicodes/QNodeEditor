@@ -35,6 +35,7 @@ private:
     void createToolBars();
     void createStatusBar();
     void createNodesDock();
+    void updateEditMenu();
     QMdiSubWindow* createMdiChild();
     QWidget* activeMdiChild();
     QMdiSubWindow* findMdiChild(const QString& filename);

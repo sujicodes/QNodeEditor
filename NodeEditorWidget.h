@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QString>
+#include <qgraphicsitem.h>
 
 class NodeGraphicsScene;
 class NodeEditorGraphicsView;
@@ -24,6 +25,10 @@ public:
     void fileNew();
     bool fileLoad(const QString& name);
     bool fileSave(const QString& name = QString());
+    QList<QGraphicsItem*> getSelectedItems() const;
+    bool hasSelectedItems() const;
+    bool canUndo() const;
+    bool canRedo() const;
 
 private:
     QVBoxLayout *layout;

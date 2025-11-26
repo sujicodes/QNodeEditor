@@ -89,9 +89,6 @@ void CalculatorWindow::createActions()
 
 void CalculatorWindow::createMenus()
 {
-    // Call base to create standard File/Edit menus if present
-    // NodeEditorWindow::createMenus(); // uncomment if base provides createMenus()
-    NodeEditorWindow::createMenus();
     // Window menu
     windowMenu = menuBar()->addMenu(tr("&Window"));
     updateWindowMenu();
@@ -124,6 +121,7 @@ void CalculatorWindow::updateMenus()
     qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
 
     if (separatorAct)  separatorAct->setVisible(hasMdiChild);
+    updateEditMenu();
 }
 
 void CalculatorWindow::createToolBars()
@@ -151,17 +149,6 @@ void CalculatorWindow::createNodesDock()
     addDockWidget(Qt::RightDockWidgetArea, itemsDock);
 }
 
-// void CalculatorWindow::updateMenus()
-// {
-//     // You can enable/disable actions depending on MDI state.
-//     bool hasSubWindow = (mdiArea->currentSubWindow() != nullptr);
-//     closeAct->setEnabled(hasSubWindow);
-//     closeAllAct->setEnabled(hasSubWindow);
-//     tileAct->setEnabled(hasSubWindow);
-//     cascadeAct->setEnabled(hasSubWindow);
-//     nextAct->setEnabled(hasSubWindow);
-//     previousAct->setEnabled(hasSubWindow);
-// }
 
 void CalculatorWindow::updateWindowMenu()
 {
@@ -333,4 +320,26 @@ QMdiSubWindow* CalculatorWindow::findMdiChild(const QString& filename)
     }
 
     return nullptr; // None in Python
+}
+
+void CalculatorWindow::updateEditMenu()
+{
+    qDebug() << "update Edit Menu";
+
+    NodeEditorWidget* active = getCurrentNodeEditorWidget();
+    bool hasMdiChild = (active != nullptr);
+
+    // Paste only depends on whether an editor exists
+    actPaste->setEnabled(hasMdiChild);
+
+    // These depend on active editor + selection
+    bool hasSelection = hasMdiChild && active->hasSelectedItems();
+
+    actCut->setEnabled(hasSelection);
+    actCopy->setEnabled(hasSelection);
+    actDelete->setEnabled(hasSelection);
+
+    // Undo / Redo depend on the editor's history
+    actUndo->setEnabled(hasMdiChild && active->canUndo());
+    actRedo->setEnabled(hasMdiChild && active->canRedo());
 }

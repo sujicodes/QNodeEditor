@@ -72,6 +72,7 @@ void NodeEditorWidget::fileNew()
 {
     if (scene)
         scene->clearScene();
+        scene->getHistory()->clear();
 
     filename.clear();
 }
@@ -92,7 +93,7 @@ bool NodeEditorWidget::fileLoad(const QString& name)
             );
         return false;
     }
-
+    scene->getHistory()->clear();
     filename = name;
     return true;
 }
@@ -109,4 +110,24 @@ bool NodeEditorWidget::fileSave(const QString& name)
     QApplication::restoreOverrideCursor();
 
     return true;
+}
+
+QList<QGraphicsItem*> NodeEditorWidget::getSelectedItems() const
+{
+    return scene->getSelectedItems();
+}
+
+bool NodeEditorWidget::hasSelectedItems() const
+{
+    return !scene->getSelectedItems().isEmpty();
+}
+
+bool NodeEditorWidget::canUndo() const
+{
+    return scene->getHistory()->canUndo();
+}
+
+bool NodeEditorWidget::canRedo() const
+{
+    return scene->getHistory()->canRedo();
 }
