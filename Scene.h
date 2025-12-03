@@ -46,9 +46,18 @@ public:
 
     bool hasBeenModified() const;
     void setHasBeenModified(bool value);
+
     void addHasBeenModifiedListener(const std::function<void()>& callback);
+    void addItemSelectedListener(std::function<void()>& callback);
+    void addItemsDeselectedListener(std::function<void()>& callback);
+
     QList<QGraphicsItem*> getSelectedItems() const { return _graphicsScene->selectedItems(); }
+
+    void onItemSelected();
+    void onItemsDeselected();
+
     
+    void resetLastSelectedStates();
 
 private:
     void initUI();
@@ -61,6 +70,8 @@ private:
 
     NodeGraphicsScene* _graphicsScene;
     bool m_hasBeenModified;
+    std::vector<std::function<void()>> m_itemSelectedListeners;
+    std::vector<std::function<void()>> m_itemsDeselectedListeners;
     std::vector<std::function<void()>> m_hasBeenModifiedListeners;
 };
 

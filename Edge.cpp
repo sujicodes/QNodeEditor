@@ -48,7 +48,7 @@ void Edge::updatePositions() {
     qDebug() << " ES:" << m_endSocket;
 #endif
 
-    grEdge->updatePath();
+    grEdge->update();
 }
 
 void Edge::setStartSocket(Socket* socket){

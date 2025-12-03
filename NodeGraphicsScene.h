@@ -15,6 +15,10 @@ public:
     void setGraphicsScene(int width, int height);
     Scene* getScene(){ return m_scene; };
 
+signals:
+    void itemSelected();
+    void itemsDeselected();
+
 
 protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;

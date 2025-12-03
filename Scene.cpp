@@ -20,7 +20,11 @@ Scene::Scene()
 {
     initUI();
     history = new QUndoStack();
-(this);
+    QObject::connect(_graphicsScene, &NodeGraphicsScene::itemSelected,
+                     [this]() { this->onItemSelected(); });
+
+    QObject::connect(_graphicsScene, &NodeGraphicsScene::itemSelected,
+                     [this]() { this->onItemsDeselected(); });
 }
 
 void Scene::initUI()
@@ -292,3 +296,36 @@ void Scene::setHasBeenModified(bool value) {
 void Scene::addHasBeenModifiedListener(const std::function<void()>& callback) {
     m_hasBeenModifiedListeners.push_back(callback);
 }
+
+void Scene::onItemSelected()
+{
+    qDebug() << "SCENE:: ~onItemSelected";
+}
+
+void Scene::onItemsDeselected()
+{
+    qDebug() << "SCENE:: ~onItemsDeselected";
+}
+
+void Scene::addItemSelectedListener(std::function<void()>& callback)
+{
+    m_itemSelectedListeners.push_back(callback);
+}
+
+void Scene::addItemsDeselectedListener(std::function<void()>& callback)
+{
+    m_itemsDeselectedListeners.push_back(callback);
+}
+
+void Scene::resetLastSelectedStates()
+{
+    for (auto* node : nodes)
+        if (node && node->getNodeGraphicsItem())
+            node->getNodeGraphicsItem()->setLastSelectedState(false);
+
+    for (auto* edge : edges)
+        if (edge && edge->getEdgeGraphicsItem())
+            edge->getEdgeGraphicsItem()->setLastSelectedState(false);
+}
+
+

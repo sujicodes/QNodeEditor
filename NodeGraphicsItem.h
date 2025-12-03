@@ -35,13 +35,17 @@ public:
     void setEdgeSize(float e) { edgeSize = e; }
     void setPadding(float p) { padding = p; }
     void setTitleHeight(float t) { titleHeight = t; }
+    void setLastSelectedState(bool s) { lastSelectedState = s; }
+
+protected:
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
 
 private:
     void initUI();
     void initTitle();
     void initItemWidget();
 
-private:
     QGraphicsTextItem* titleItem;
 
     QString _title;
@@ -54,10 +58,10 @@ private:
     float titleHeight = 24.0;
     float padding = 4.0;
 
+    bool lastSelectedState = false;
+
     QPointF startPos;
 
-    bool isMoved = false;
-    bool m_dragging = false;
     Node *node;
 
     QPen penDefault = QPen(QColor("#7F000000"));

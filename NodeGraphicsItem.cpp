@@ -123,5 +123,20 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->drawPath(pathOutline.simplified());
 }
 
+void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    QGraphicsItem::mouseReleaseEvent(event);
+
+    bool current = isSelected();
+
+    if (lastSelectedState != current)
+    {
+        // Inform scene just like Python:
+        node->getScene()->resetLastSelectedStates();
+        lastSelectedState = current;
+        emit node->getScene()->graphicsScene()->itemSelected();
+    }
+}
+
 
 
