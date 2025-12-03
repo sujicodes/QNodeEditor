@@ -71,7 +71,7 @@ void Edge::setEndSocket(Socket* socket){
 }
 
 void Edge::removeFromSockets() {
-    if (m_startSocket) m_startSocket->removeEdge(this);
+     if (m_startSocket) m_startSocket->removeEdge(this);
     if (m_endSocket) m_endSocket->removeEdge(this);
     m_startSocket = nullptr;
     m_endSocket = nullptr;
@@ -81,8 +81,8 @@ void Edge::remove() {
     removeFromSockets();
     if (scene && grEdge) {
         scene->graphicsScene()->removeItem(grEdge);
+        grEdge = nullptr;
     }
-    grEdge = nullptr;
     if (scene) scene->removeEdge(this);
 }
 

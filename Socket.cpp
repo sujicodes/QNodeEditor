@@ -63,13 +63,7 @@ void Socket::deserialize(
 
 void Socket::removeEdge(Edge* edge)
 {
-    if (edges.contains(edge)) {
-        edges.removeOne(edge);
-    } else {
-        qWarning() << "!W:" << "Scene::removeEdge"
-                   << "Tried to remove edge" << edge
-                   << "but it's not in the list!";
-    }
+    edges.removeOne(edge);
 }
 
 void Socket::removeAllEdges()

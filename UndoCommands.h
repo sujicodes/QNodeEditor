@@ -83,7 +83,7 @@ private:
 class CreateEdgeCommand : public QUndoCommand {
 public:
     CreateEdgeCommand(Scene* scene,
-                      Edge* edge,
+                      Edge* dragEdge,
                       Socket* start,
                       Socket* end,
                       Edge* previous = nullptr,
@@ -91,14 +91,16 @@ public:
                       QUndoCommand* parent = nullptr)
         : QUndoCommand("Create Edge", parent),
           m_scene(scene),
-          m_edge(edge),
           m_start(start),
           m_end(end),
           m_previousEdge(previous),
           m_conflictingEdge(conflicting)
     {
-        if (m_edge)
-            m_serializedEdge = m_edge->serialize();
+        if (dragEdge) {
+            dragEdge->remove();
+            dragEdge = nullptr;
+            m_edge = new Edge(m_scene);
+        }
         if (m_previousEdge)
             m_serializedPrev = m_previousEdge->serialize();
         if (m_conflictingEdge)
@@ -469,10 +471,16 @@ public:
 
     void redo() override {
         for (Node* node : m_nodes) {
-            if (node) node->remove();
+            if (node) {
+                node->remove();
+                m_nodes.removeAll(node);
+            }
         }
         for (Edge* edge : m_edges) {
-            if (edge) edge->remove();
+            if (edge){
+                edge->remove();
+                m_edges.removeAll(edge);
+            }
         }
     }
 
