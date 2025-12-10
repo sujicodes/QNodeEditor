@@ -121,7 +121,8 @@ void Edge::deserialize(
     if (startIt != hashmap.end()) {
         setStartSocket(dynamic_cast<Socket*>(startIt->second));
     } else {
-        setStartSocket(nullptr);
+        remove();
+        return;
     }
 
     qint64 endId = static_cast<qint64>(data["end"].toDouble());
@@ -129,7 +130,8 @@ void Edge::deserialize(
     if (endIt != hashmap.end()) {
         setEndSocket(dynamic_cast<Socket*>(endIt->second));
     } else {
-        setEndSocket(nullptr);
+        remove();
+        return;
     }
     if(m_startSocket){
         updatePositions();
