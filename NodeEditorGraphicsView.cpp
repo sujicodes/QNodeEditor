@@ -45,7 +45,7 @@ NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidg
     setScene(m_grScene);
     connect(m_grScene, &QGraphicsScene::selectionChanged,
             this, &NodeEditorGraphicsView::onSelectionChanged);
-
+    
     connect(m_grScene->getScene()->getHistory(), &QUndoStack::indexChanged, this, [this]() {
         // Resync to actual selection
         previousNodeIds.clear();
@@ -258,12 +258,16 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
         if (startPos != endPos) {
             m_moveData[id].second = endPos;
             anyMoved = true;
+            nodeItem->onNodeMoved();
         }
     }
 
     if (anyMoved)
         m_grScene->getScene()->getHistory()->push(new MoveNodeCommand(m_grScene->getScene(), m_moveData));
         m_grScene->getScene()->setHasBeenModified(true);
+        m_grScene->lastSelectedItems = m_grScene->selectedItems();
+        m_grScene->getScene()->resetLastSelectedStates();
+
 
     m_draggedNodes.clear();
     m_moveData.clear();
@@ -456,6 +460,7 @@ void NodeEditorGraphicsView::onSelectionChanged()
 
         previousNodeIds = newNodeIds;
         previousEdgeIds = newEdgeIds;
+        m_grScene->lastSelectedItems = newSelection;
     }
 }
 

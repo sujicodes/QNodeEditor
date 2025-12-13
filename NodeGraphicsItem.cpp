@@ -10,6 +10,7 @@
 #include "Scene.h"
 #include "history.h"
 #include "UndoCommands.h"
+#include <QObject>
 
 NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -129,14 +130,15 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
     bool current = isSelected();
 
-    if (lastSelectedState != current)
+    if (lastSelectedState != current ||  node->getScene()->graphicsScene()->getLastSelectedItems() != node->getScene()->graphicsScene()->selectedItems())
     {
-        // Inform scene just like Python:
         node->getScene()->resetLastSelectedStates();
         lastSelectedState = current;
         emit node->getScene()->graphicsScene()->itemSelected();
     }
 }
 
-
+void NodeGraphicsItem::onNodeMoved() {
+    lastSelectedState = true;
+}
 

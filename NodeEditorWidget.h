@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QString>
-#include <qgraphicsitem.h>
+#include <QGraphicsItem>
 
 class NodeGraphicsScene;
 class NodeEditorGraphicsView;

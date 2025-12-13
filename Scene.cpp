@@ -297,16 +297,6 @@ void Scene::addHasBeenModifiedListener(const std::function<void()>& callback) {
     m_hasBeenModifiedListeners.push_back(callback);
 }
 
-void Scene::onItemSelected()
-{
-    qDebug() << "SCENE:: ~onItemSelected";
-}
-
-void Scene::onItemsDeselected()
-{
-    qDebug() << "SCENE:: ~onItemsDeselected";
-}
-
 void Scene::addItemSelectedListener(std::function<void()>& callback)
 {
     m_itemSelectedListeners.push_back(callback);
@@ -328,4 +318,35 @@ void Scene::resetLastSelectedStates()
             edge->getEdgeGraphicsItem()->setLastSelectedState(false);
 }
 
+void Scene::onItemSelected()
+{
+    qDebug() << "SCENE:: ~onItemSelected";
+
+    QList<QGraphicsItem*> current = getSelectedItems();
+
+    if (current != _graphicsScene->lastSelectedItems)
+    {
+        _graphicsScene->lastSelectedItems = current;
+
+        // Fire callbacks
+        for (auto& cb : m_itemSelectedListeners)
+            cb();
+    }
+}
+
+void Scene::onItemsDeselected()
+{
+    qDebug() << "SCENE:: ~onItemsDeselected";
+
+    resetLastSelectedStates();
+
+    if (!_graphicsScene->lastSelectedItems.isEmpty())
+    {
+        _graphicsScene->lastSelectedItems.clear();
+
+        // Fire callbacks
+        for (auto& cb : m_itemsDeselectedListeners)
+            cb();
+    }
+}
 

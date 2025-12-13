@@ -36,6 +36,9 @@ public:
     void setPadding(float p) { padding = p; }
     void setTitleHeight(float t) { titleHeight = t; }
     void setLastSelectedState(bool s) { lastSelectedState = s; }
+    void onNodeMoved();
+
+private slots:
 
 protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
