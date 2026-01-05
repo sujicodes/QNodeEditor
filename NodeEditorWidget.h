@@ -33,7 +33,6 @@ public:
 private:
     QVBoxLayout *layout;
     NodeEditorGraphicsView *view;
-    NodeGraphicsScene *graphicsScene;
     Scene *scene;
     QString filename;
 };

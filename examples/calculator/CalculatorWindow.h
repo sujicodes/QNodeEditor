@@ -2,12 +2,14 @@
 #define CALCULATORWINDOW_H
 
 #include "../../NodeEditorWindow.h" // your existing base window
+#include "NodeEditorWidget.h"
 #include <QMdiArea>
 #include <QDockWidget>
 #include <QListWidget>
 #include <QAction>
 #include <QMenu>
 #include <QSignalMapper>
+#include <qgraphicsscene.h>
 
 class CalculatorWindow : public NodeEditorWindow {
     Q_OBJECT
@@ -27,7 +29,7 @@ private slots:
     void onFileNew() override;
     NodeEditorWidget* getCurrentNodeEditorWidget() const override;
     void onFileOpen() override;
-
+    void hookEditorSignals(NodeEditorWidget* editor);
 private:
     void initUI();
     void createActions();

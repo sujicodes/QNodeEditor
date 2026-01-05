@@ -1,5 +1,7 @@
 #include "CalculatorWindow.h"
 #include "CalculatorSubWindow.h"
+#include "NodeGraphicsScene.h"
+#include "Scene.h"
 
 #include <QMenuBar>
 #include <QStatusBar>
@@ -32,6 +34,11 @@ void CalculatorWindow::initUI()
     // Connect MDI signals
     connect(mdiArea, &QMdiArea::subWindowActivated, this, [this](QMdiSubWindow* sub){
         lastActiveSubWindow = sub;
+        if (auto* editor = getCurrentNodeEditorWidget()){
+                hookEditorSignals(editor);
+                connect(editor->getScene()->getHistory(), &QUndoStack::canUndoChanged, this, &CalculatorWindow::updateEditMenu);
+                connect(editor->getScene()->getHistory(), &QUndoStack::canRedoChanged, this, &CalculatorWindow::updateEditMenu);
+        }
         updateMenus();
     });
 
@@ -119,7 +126,6 @@ void CalculatorWindow::updateMenus()
     actSave->setEnabled(hasMdiChild);
     actSaveAs->setEnabled(hasMdiChild);
     qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
-
     if (separatorAct)  separatorAct->setVisible(hasMdiChild);
     updateEditMenu();
 }
@@ -254,6 +260,7 @@ NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
     if (!sub) sub = lastActiveSubWindow;  // fallback to last active
     if (sub)
         return dynamic_cast<NodeEditorWidget*>(sub->widget());
+
     return nullptr;
 }
 
@@ -342,4 +349,15 @@ void CalculatorWindow::updateEditMenu()
     // Undo / Redo depend on the editor's history
     actUndo->setEnabled(hasMdiChild && active->canUndo());
     actRedo->setEnabled(hasMdiChild && active->canRedo());
+}
+
+void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)
+{
+    if (!editor) return;
+
+    NodeGraphicsScene* scene = getCurrentNodeEditorWidget()->getScene()->graphicsScene();
+
+    connect(scene, &NodeGraphicsScene::selectionChanged,
+            this, &CalculatorWindow::updateMenus,
+            Qt::UniqueConnection);
 }
