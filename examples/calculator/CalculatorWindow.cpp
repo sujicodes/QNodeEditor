@@ -249,8 +249,18 @@ void CalculatorWindow::closeEvent(QCloseEvent *event)
 QMdiSubWindow* CalculatorWindow::createMdiChild()
 {
     auto *nodeeditor = new CalculatorSubWindow(this);  // your custom widget
-    QMdiSubWindow *subwnd = mdiArea->addSubWindow(nodeeditor);
-    return subwnd;
+    QMdiSubWindow *subWnd = mdiArea->addSubWindow(nodeeditor);
+    subWnd->setWindowIcon(emptyIcon);
+
+    connect(
+        nodeeditor,
+        &CalculatorSubWindow::closeRequested,
+        this,
+        &CalculatorWindow::onSubWndClose
+        );
+
+    return subWnd;
+
 }
 
 NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
@@ -295,12 +305,13 @@ void CalculatorWindow::onFileOpen()
         else
         {
             // Create new subwindow and load the file
-            auto* nodeEditor = new CalculatorSubWindow;
+            auto* subwnd = createMdiChild();
+            CalculatorSubWindow* nodeEditor = qobject_cast<CalculatorSubWindow*>(subwnd->widget());
+
             if (nodeEditor->fileLoad(fname))
             {
                 statusBar()->showMessage(tr("File %1 loaded").arg(fname), 5000);
                 nodeEditor->setTitle();
-                QMdiSubWindow* subwnd = mdiArea->addSubWindow(nodeEditor);
                 subwnd->show();
             }
             else
@@ -361,3 +372,28 @@ void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)
             this, &CalculatorWindow::updateMenus,
             Qt::UniqueConnection);
 }
+
+void CalculatorWindow::onSubWndClose(NodeEditorWidget* widget, QCloseEvent* event)
+{
+    qDebug() << "LOOOLOLLOL";
+    if (!widget) {
+        event->accept();
+        return;
+    }
+
+    // Activate the subwindow owning this widget
+    for (QMdiSubWindow* sub : mdiArea->subWindowList()) {
+        if (sub->widget() == widget) {
+            mdiArea->setActiveSubWindow(sub);
+            break;
+        }
+    }
+
+    // Ask user
+    if (maybeSave()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+

@@ -6,9 +6,14 @@
 class CalculatorSubWindow : public NodeEditorWidget
 {
     Q_OBJECT
+signals:
+    void closeRequested(NodeEditorWidget* widget, QCloseEvent* event);
 
 public:
     explicit CalculatorSubWindow(QWidget *parent = nullptr);
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 public slots:
     void setTitle();

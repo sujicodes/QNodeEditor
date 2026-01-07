@@ -274,7 +274,6 @@ Edge* Scene::getEdgeById(qint64 id) const {
 }
 
 bool Scene::hasBeenModified() const{
-    return false;
     return m_hasBeenModified;
 }
 

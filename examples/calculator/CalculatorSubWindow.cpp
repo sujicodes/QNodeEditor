@@ -28,3 +28,11 @@ void CalculatorSubWindow::setTitle()
     // Assuming NodeEditorWidget provides getUserFriendlyFilename()
     setWindowTitle(getUserFriendlyFilename());
 }
+
+
+void CalculatorSubWindow::closeEvent(QCloseEvent* event)
+{
+    // Let the main window decide
+    qDebug() << " singallll@";
+    emit closeRequested(this, event);
+}

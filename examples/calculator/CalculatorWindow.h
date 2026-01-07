@@ -30,6 +30,8 @@ private slots:
     NodeEditorWidget* getCurrentNodeEditorWidget() const override;
     void onFileOpen() override;
     void hookEditorSignals(NodeEditorWidget* editor);
+    void onSubWndClose(NodeEditorWidget* widget, QCloseEvent* event);
+
 private:
     void initUI();
     void createActions();
@@ -62,6 +64,7 @@ private:
     QMenu *helpMenu = nullptr;
     QSignalMapper *windowMapper;
     QMdiSubWindow* lastActiveSubWindow = nullptr;
+    QIcon emptyIcon = QIcon(".");
 };
 
 #endif // CALCULATORWINDOW_H

@@ -16,7 +16,6 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QCloseEvent>
-#include "NodeSelectorWidget.h"
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -196,45 +195,61 @@ bool NodeEditorWindow::onFileSaveAs()
 }
 
 void NodeEditorWindow::onEditUndo()
-{
-    getCurrentNodeEditorWidget()->getScene()->getHistory()->undo();
+
+{   NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr)
+        editor->getScene()->getHistory()->undo();
 }
 
 void NodeEditorWindow::onEditRedo()
 {
-    getCurrentNodeEditorWidget()->getScene()->getHistory()->redo();
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr)
+        editor->getScene()->getHistory()->redo();
 }
 
 void NodeEditorWindow::onEditDelete()
 {
-    NodeEditorGraphicsView* view = getCurrentNodeEditorWidget()->getGraphicsView();
-    if (view) {
-        // Assuming NodeEditorGraphicsView has deleteSelected()
-        view->deleteSelected();
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        NodeEditorGraphicsView* view = editor->getGraphicsView();
+        if (view) {
+            view->deleteSelected();
+        }
     }
 }
 
 void NodeEditorWindow::onEditCut()
 {
-    QJsonObject data = getCurrentNodeEditorWidget()->getScene()->serializeSelected(true);
-    QJsonDocument doc(data);
-    QString strData = doc.toJson(QJsonDocument::Indented);
-    qWarning() << "copying: "<< strData;
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        QJsonObject data = editor->getScene()->serializeSelected(true);
+        QJsonDocument doc(data);
+        QString strData = doc.toJson(QJsonDocument::Indented);
+        qWarning() << "copying: "<< strData;
 
-    QApplication::clipboard()->setText(strData);
+        QApplication::clipboard()->setText(strData);
+    }
 }
 
 void NodeEditorWindow::onEditCopy()
 {
-    QJsonObject data = getCurrentNodeEditorWidget()->getScene()->serializeSelected(false);
-    QJsonDocument doc(data);
-    QString strData = doc.toJson(QJsonDocument::Indented);
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        QJsonObject data = editor->getScene()->serializeSelected(false);
+        QJsonDocument doc(data);
+        QString strData = doc.toJson(QJsonDocument::Indented);
 
-    QApplication::clipboard()->setText(strData);
+        QApplication::clipboard()->setText(strData);
+    }
 }
 
 void NodeEditorWindow::onEditPaste()
 {
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor == nullptr){
+        return;
+    }
     QString rawData = QApplication::clipboard()->text();
 
     QJsonParseError parseError;
@@ -257,9 +272,8 @@ void NodeEditorWindow::onEditPaste()
         return;
     }
 
-    getCurrentNodeEditorWidget()->getScene()->deserializeFromClipboard(data);
+    editor->getScene()->deserializeFromClipboard(data);
 }
-
 
 void NodeEditorWindow::setTitle()
 {
@@ -280,7 +294,7 @@ void NodeEditorWindow::closeEvent(QCloseEvent* event)
 
 bool NodeEditorWindow::isModified() const
 {
-    return getCurrentNodeEditorWidget()->getScene()->hasBeenModified();
+    return getCurrentNodeEditorWidget()->isModified();
 }
 
 bool NodeEditorWindow::maybeSave()
