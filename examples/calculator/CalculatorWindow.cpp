@@ -47,11 +47,11 @@ void CalculatorWindow::initUI()
             this, SLOT(setActiveSubWindow(QWidget*)));
 
 
+    createNodesDock();
     createActions();
     createMenus();
     createToolBars();
     createStatusBar();
-    createNodesDock();
     updateMenus();
 
     setGeometry(200, 200, 800, 600);
@@ -141,24 +141,26 @@ void CalculatorWindow::createStatusBar()
 }
 
 void CalculatorWindow::createNodesDock()
+
 {
-    listWidget = new QListWidget(this);
-    listWidget->addItem(tr("Add"));
-    listWidget->addItem(tr("Substract"));
-    listWidget->addItem(tr("Multiply"));
-    listWidget->addItem(tr("Divide"));
+    dragListWidget = new DragListWidget();
+    nodesDock = new QDockWidget(tr("Nodes"), this);
+    nodesDock->setWidget(dragListWidget);
+    nodesDock->setFloating(false);
 
-    itemsDock = new QDockWidget(tr("Nodes"), this);
-    itemsDock->setWidget(listWidget);
-    itemsDock->setFloating(false);
-
-    addDockWidget(Qt::RightDockWidgetArea, itemsDock);
+    addDockWidget(Qt::RightDockWidgetArea, nodesDock);
 }
 
 
 void CalculatorWindow::updateWindowMenu()
 {
     windowMenu->clear();
+    QAction* toolbarNodesAct = windowMenu->addAction(tr("Nodes Toolbar"));
+    toolbarNodesAct->setCheckable(true);
+
+    // Initial checked state matches dock visibility
+    toolbarNodesAct->setChecked(nodesDock && nodesDock->isVisible());
+
     windowMenu->addAction(closeAct);
     windowMenu->addAction(closeAllAct);
     windowMenu->addSeparator();

@@ -2,6 +2,7 @@
 #define CALCULATORWINDOW_H
 
 #include "../../NodeEditorWindow.h" // your existing base window
+#include "DragListWidget.h"
 #include "NodeEditorWidget.h"
 #include <QMdiArea>
 #include <QDockWidget>
@@ -65,6 +66,8 @@ private:
     QSignalMapper *windowMapper;
     QMdiSubWindow* lastActiveSubWindow = nullptr;
     QIcon emptyIcon = QIcon(".");
+    QDockWidget *nodesDock = nullptr;
+    DragListWidget *dragListWidget = nullptr;
 };
 
 #endif // CALCULATORWINDOW_H
