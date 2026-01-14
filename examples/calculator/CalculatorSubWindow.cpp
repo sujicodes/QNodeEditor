@@ -90,8 +90,6 @@ void CalculatorSubWindow::onDrop(QDropEvent* event)
     // TODO: Update node constructor / inputs & outputs as needed
     Node* node = new Node(getScene(), text, {1,1}, {2});
     node->setPos(scenePos.x(), scenePos.y());
-    getScene()->addNode(node);
-
     event->setDropAction(Qt::MoveAction);
     event->accept();
 }

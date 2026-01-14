@@ -20,7 +20,7 @@ public:
     void setTitle(const QString &title);
     QString title() const;
     QWidget* itemWidget;
-    QWidget* setItemWidget() const;
+    virtual QWidget* setItemWidget() const;
 
     Node* getNode() const { return node; }
     float getWidth() const { return width; }

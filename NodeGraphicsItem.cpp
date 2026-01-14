@@ -19,7 +19,6 @@ NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     initTitle();
     setTitle("Node Graphics Item");
     initUI();
-    itemWidget = setItemWidget();
     initItemWidget();
 }
 
@@ -85,6 +84,7 @@ QWidget* NodeGraphicsItem::setItemWidget() const
 }
 
 void NodeGraphicsItem::initItemWidget(){
+    itemWidget = setItemWidget();
     graphicsProxyWidget = new QGraphicsProxyWidget(this);
     itemWidget->setGeometry(edgeSize, titleHeight+edgeSize,
             width-2*edgeSize, height-2*edgeSize-titleHeight);
