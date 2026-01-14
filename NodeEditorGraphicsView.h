@@ -26,6 +26,8 @@ public:
 
 signals:
     void scenePosChanged(int x, int y);
+    void nodeDragEntered(QDragEnterEvent*);
+    void nodeDropped(QDropEvent*);
 
 protected:
     void initUI();

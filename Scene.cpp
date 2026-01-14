@@ -349,35 +349,4 @@ void Scene::onItemsDeselected()
     }
 }
 
-void Scene::addDragEnterListener(const DragEnterCallback& callback)
-{
-    if (!_graphicsScene)
-        return;
-
-    const auto views = _graphicsScene->views();
-    if (views.isEmpty())
-        return;
-
-    auto* view = qobject_cast<NodeEditorGraphicsView*>(views.first());
-    if (!view)
-        return;
-
-    view->addDragEnterListener(callback);
-}
-
-void Scene::addDropListener(const DropCallback& callback)
-{
-    if (!_graphicsScene)
-        return;
-
-    const auto views = _graphicsScene->views();
-    if (views.isEmpty())
-        return;
-
-    auto* view = qobject_cast<NodeEditorGraphicsView*>(views.first());
-    if (!view)
-        return;
-
-    view->addDropListener(callback);
-}
 

@@ -60,12 +60,6 @@ public:
     
     void resetLastSelectedStates();
 
-    using DragEnterCallback = std::function<void(QDragEnterEvent*)>;
-    using DropCallback      = std::function<void(QDropEvent*)>;
-
-    void addDragEnterListener(const DragEnterCallback& callback);
-    void addDropListener(const DropCallback& callback);
-
 private:
     void initUI();
 

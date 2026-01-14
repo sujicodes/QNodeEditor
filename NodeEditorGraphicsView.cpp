@@ -478,18 +478,10 @@ void NodeEditorGraphicsView::addDropListener(
 
 void NodeEditorGraphicsView::dragEnterEvent(QDragEnterEvent* event)
 {
-    for (auto& cb : m_dragEnterListeners)
-        cb(event);
-
-    if (!event->isAccepted())
-        QGraphicsView::dragEnterEvent(event);
+    emit nodeDragEntered(event);
 }
 
 void NodeEditorGraphicsView::dropEvent(QDropEvent* event)
 {
-    for (auto& cb : m_dropListeners)
-        cb(event);
-
-    if (!event->isAccepted())
-        QGraphicsView::dropEvent(event);
+    emit nodeDropped(event);
 }

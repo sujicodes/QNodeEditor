@@ -1,6 +1,7 @@
 #include "CalculatorSubWindow.h"
 #include "../../Scene.h"
 #include "Node.h"
+#include "NodeEditorGraphicsView.h"
 #include "examples/calculator/CalculatorConfig.h"
 #include <QDebug>
 #include <QEvent>
@@ -31,17 +32,11 @@ CalculatorSubWindow::CalculatorSubWindow(QWidget *parent)
         );
     }
 
-    getScene()->addDragEnterListener(
-        [this](QDragEnterEvent* event) {
-            onDragEnter(event);
-        }
-    );
+    connect(getGraphicsView(), &NodeEditorGraphicsView::nodeDragEntered,
+            this, &CalculatorSubWindow::onDragEnter);
 
-    getScene()->addDropListener(
-        [this](QDropEvent* event) {
-            onDrop(event);
-        }
-    );
+    connect(getGraphicsView(), &NodeEditorGraphicsView::nodeDropped,
+            this, &CalculatorSubWindow::onDrop);
 }
 
 void CalculatorSubWindow::setTitle()
