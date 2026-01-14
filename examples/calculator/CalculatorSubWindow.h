@@ -11,6 +11,8 @@ signals:
 
 public:
     explicit CalculatorSubWindow(QWidget *parent = nullptr);
+    void onDragEnter(QDragEnterEvent* event);
+    void onDrop(QDropEvent* event);
 
 protected:
     void closeEvent(QCloseEvent* event) override;

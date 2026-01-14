@@ -26,6 +26,7 @@ signals:
 
 protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
+    void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
     Scene* m_scene;

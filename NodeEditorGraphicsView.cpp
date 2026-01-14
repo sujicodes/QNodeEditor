@@ -464,4 +464,32 @@ void NodeEditorGraphicsView::onSelectionChanged()
     }
 }
 
+void NodeEditorGraphicsView::addDragEnterListener(
+    std::function<void(QDragEnterEvent*)> callback)
+{
+    m_dragEnterListeners.append(callback);
+}
 
+void NodeEditorGraphicsView::addDropListener(
+    std::function<void(QDropEvent*)> callback)
+{
+    m_dropListeners.append(callback);
+}
+
+void NodeEditorGraphicsView::dragEnterEvent(QDragEnterEvent* event)
+{
+    for (auto& cb : m_dragEnterListeners)
+        cb(event);
+
+    if (!event->isAccepted())
+        QGraphicsView::dragEnterEvent(event);
+}
+
+void NodeEditorGraphicsView::dropEvent(QDropEvent* event)
+{
+    for (auto& cb : m_dropListeners)
+        cb(event);
+
+    if (!event->isAccepted())
+        QGraphicsView::dropEvent(event);
+}

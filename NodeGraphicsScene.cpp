@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <cmath>
 #include "Theme.h"
+#include <QGraphicsSceneDragDropEvent>
 
 NodeGraphicsScene::NodeGraphicsScene(Scene* scene, QObject *parent)
     : QGraphicsScene(parent),
@@ -59,4 +60,9 @@ void NodeGraphicsScene::drawBackground(QPainter *painter, const QRectF &rect) {
 void NodeGraphicsScene::setGraphicsScene(int width, int height)
 {
     setSceneRect(-width / 2, -height / 2, width, height);
+}
+
+void NodeGraphicsScene::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+    event->accept();
 }

@@ -296,12 +296,12 @@ void Scene::addHasBeenModifiedListener(const std::function<void()>& callback) {
     m_hasBeenModifiedListeners.push_back(callback);
 }
 
-void Scene::addItemSelectedListener(std::function<void()>& callback)
+void Scene::addItemSelectedListener(const std::function<void()>& callback)
 {
     m_itemSelectedListeners.push_back(callback);
 }
 
-void Scene::addItemsDeselectedListener(std::function<void()>& callback)
+void Scene::addItemsDeselectedListener(const std::function<void()>& callback)
 {
     m_itemsDeselectedListeners.push_back(callback);
 }
@@ -347,5 +347,37 @@ void Scene::onItemsDeselected()
         for (auto& cb : m_itemsDeselectedListeners)
             cb();
     }
+}
+
+void Scene::addDragEnterListener(const DragEnterCallback& callback)
+{
+    if (!_graphicsScene)
+        return;
+
+    const auto views = _graphicsScene->views();
+    if (views.isEmpty())
+        return;
+
+    auto* view = qobject_cast<NodeEditorGraphicsView*>(views.first());
+    if (!view)
+        return;
+
+    view->addDragEnterListener(callback);
+}
+
+void Scene::addDropListener(const DropCallback& callback)
+{
+    if (!_graphicsScene)
+        return;
+
+    const auto views = _graphicsScene->views();
+    if (views.isEmpty())
+        return;
+
+    auto* view = qobject_cast<NodeEditorGraphicsView*>(views.first());
+    if (!view)
+        return;
+
+    view->addDropListener(callback);
 }
 

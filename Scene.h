@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVector>
 #include <QUndoStack>
+#include <qevent.h>
 #include "NodeGraphicsScene.h"
 #include "Serializable.h"
 
@@ -48,8 +49,8 @@ public:
     void setHasBeenModified(bool value);
 
     void addHasBeenModifiedListener(const std::function<void()>& callback);
-    void addItemSelectedListener(std::function<void()>& callback);
-    void addItemsDeselectedListener(std::function<void()>& callback);
+    void addItemSelectedListener(const std::function<void()>& callback);
+    void addItemsDeselectedListener(const std::function<void()>& callback);
 
     QList<QGraphicsItem*> getSelectedItems() const { return _graphicsScene->selectedItems(); }
 
@@ -58,6 +59,12 @@ public:
 
     
     void resetLastSelectedStates();
+
+    using DragEnterCallback = std::function<void(QDragEnterEvent*)>;
+    using DropCallback      = std::function<void(QDropEvent*)>;
+
+    void addDragEnterListener(const DragEnterCallback& callback);
+    void addDropListener(const DropCallback& callback);
 
 private:
     void initUI();

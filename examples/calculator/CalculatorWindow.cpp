@@ -14,6 +14,7 @@
 CalculatorWindow::CalculatorWindow(QWidget *parent)
 {
     initUI();
+
 }
 
 void CalculatorWindow::initUI()

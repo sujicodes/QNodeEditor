@@ -84,9 +84,10 @@ void DragListWidget::startDrag(Qt::DropActions /*supportedActions*/)
 
     QByteArray itemData;
     QDataStream dataStream(&itemData, QIODevice::WriteOnly);
+    qDebug() << "text length:" << QString(item->text()).length();
 
-    dataStream << opCode;
-    dataStream << item->text();
+    dataStream << qint32(opCode);
+    dataStream << QString(item->text());
     dataStream << item->data(Qt::UserRole).value<QPixmap>();
 
     QMimeData* mimeData = new QMimeData;
