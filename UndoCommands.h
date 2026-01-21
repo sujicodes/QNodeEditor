@@ -20,6 +20,7 @@
 #include "NodeGraphicsItem.h"
 #include "EdgeGraphicsPathItem.h"
 #include "Serializable.h"
+#include "NodeRegistry.h"
 
 // --------------------------------------
 // Selection Changed
@@ -76,6 +77,102 @@ private:
     QSet<qint64> m_newEdgeIds;
 };
 
+class CreateNodeCommand : public QUndoCommand {
+public:
+    CreateNodeCommand(Scene* scene,
+                      Edge* dragEdge,
+                      Socket* start,
+                      Socket* end,
+                      Edge* previous = nullptr,
+                      Edge* conflicting = nullptr,
+                      QUndoCommand* parent = nullptr)
+        : QUndoCommand("Create Edge", parent),
+        m_scene(scene),
+        m_start(start),
+        m_end(end),
+        m_previousEdge(previous),
+        m_conflictingEdge(conflicting)
+    {
+        if (dragEdge) {
+            dragEdge->remove();
+            dragEdge = nullptr;
+            m_edge = new Edge(m_scene);
+        }
+        if (m_previousEdge)
+            m_serializedPrev = m_previousEdge->serialize();
+        if (m_conflictingEdge)
+            m_serializedConflict = m_conflictingEdge->serialize();
+    }
+
+    void redo() override {
+        // Remove conflicting edges first
+        if (m_conflictingEdge) {
+            m_conflictingEdge->remove();
+            m_conflictingEdge = nullptr;
+        }
+        if (m_previousEdge){
+
+            m_previousEdge->remove();
+            m_previousEdge = nullptr;
+        }
+
+        if (!m_edge) {
+            m_edge = new Edge(m_scene);
+            std::unordered_map<qint64, Serializable*> hashmap;
+            for (Node* node : m_scene->getNodes()) {
+                for (Socket* sock : node->inputs)
+                    hashmap[sock->getId()] = sock;
+                for (Socket* sock : node->outputs)
+                    hashmap[sock->getId()] = sock;
+            }
+            m_edge->deserialize(m_serializedEdge, hashmap, true);
+            return;
+        }
+
+        m_edge->setStartSocket(m_start);
+        m_edge->setEndSocket(m_end);
+        m_edge->updatePositions();
+        m_serializedEdge = m_edge->serialize();
+    }
+
+    void undo() override {
+        if (m_edge) {
+            m_edge->remove();
+            m_edge = nullptr;
+        }
+
+        std::unordered_map<qint64, Serializable*> hashmap;
+        for (Node* node : m_scene->getNodes()) {
+            for (Socket* sock : node->inputs)
+                hashmap[sock->getId()] = sock;
+            for (Socket* sock : node->outputs)
+                hashmap[sock->getId()] = sock;
+        }
+        // Restore any edges that were removed
+
+        if (!m_serializedPrev.isEmpty()) {
+            m_previousEdge = new Edge(m_scene);
+            m_previousEdge->deserialize(m_serializedPrev, hashmap, true);
+        }
+        if (!m_serializedConflict.isEmpty()) {
+            m_conflictingEdge = new Edge(m_scene);
+            m_conflictingEdge->deserialize(m_serializedConflict, hashmap, true);
+        }
+    }
+
+private:
+    Scene* m_scene;
+    Edge* m_edge = nullptr;
+    Socket* m_start = nullptr;
+    Socket* m_end = nullptr;
+
+    Edge* m_previousEdge = nullptr;
+    Edge* m_conflictingEdge = nullptr;
+
+    QJsonObject m_serializedEdge;
+    QJsonObject m_serializedPrev;
+    QJsonObject m_serializedConflict;
+};
 
 // --------------------------------------
 // Create Edge
@@ -490,20 +587,30 @@ public:
 
         std::unordered_map<qint64, Serializable*> socketMap;
 
-        // 1) Restore nodes
+        // 1) Restore nodes using registry
         for (const QJsonObject& nodeData : m_serializedNodes) {
-            Node* node = new Node(m_scene);
-            node->deserialize(nodeData, socketMap, true);
+            QString type = nodeData["type"].toString();
+
+            Node* node = NodeRegistry::instance().createNode(
+                type,
+                m_scene,
+                nodeData
+            );
+
+            if (!node) {
+                qWarning() << "Failed to restore node of type:" << type;
+            }
         }
 
-
-        // Add sockets to lookup table for edge restoration
+        // 2) Build socket lookup
         for (Node* node : m_scene->getNodes()) {
-            for (Socket* sock : node->inputs)  socketMap[sock->getId()] = sock;
-            for (Socket* sock : node->outputs) socketMap[sock->getId()] = sock;
+            for (Socket* sock : node->inputs)
+                socketMap[sock->getId()] = sock;
+            for (Socket* sock : node->outputs)
+                socketMap[sock->getId()] = sock;
         }
 
-        // 2) Restore edges now that socketMap is complete
+        // 3) Restore edges
         for (const QJsonObject& edgeData : m_serializedEdges) {
             Edge* edge = new Edge(m_scene);
             edge->deserialize(edgeData, socketMap, true);

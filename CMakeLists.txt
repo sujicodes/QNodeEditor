@@ -153,6 +153,7 @@ add_library(nodeeditor STATIC
     Theme.h
     DragListWidget.h DragListWidget.cpp
     icons.qrc
+    NodeRegistry.h
 )
 
 target_link_libraries(nodeeditor PUBLIC Qt${QT_VERSION_MAJOR}::Widgets)

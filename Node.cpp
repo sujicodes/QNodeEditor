@@ -12,11 +12,11 @@
 Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
     : scene(scene){
 
-    grNode = new NodeGraphicsItem(this);
+    setNodeGraphicsItem(new NodeGraphicsItem(this));
     setTitle(title);
 
     scene->addNode(this);
-    scene->graphicsScene()->addItem(grNode);
+    
     int counter = 0;
     for (int i : in) {
         Socket* socket = new Socket(this, counter++, Socket::LEFT_TOP);
@@ -167,11 +167,7 @@ QJsonObject Node::serialize() const {
     }
     obj["outputs"] = outputsArray;
 
-    if (content) {
-        obj["content"] = content->serialize();
-    } else {
-        obj["content"] = QJsonObject(); // empty object
-    }
+    obj["content"] = grNode->getNodeContent();
     return obj;
 }
 
@@ -235,5 +231,29 @@ void Node::deserialize(
         newSocket->deserialize(socketData, hashmap, restoreId);
         outputs.push_back(newSocket);
     }
+
+    grNode->setNodeContent(data["content"]);
 }
 
+
+void Node::setNodeGraphicsItem(NodeGraphicsItem* nodeGraphicsItem){
+    if(grNode){
+        scene->graphicsScene()->removeItem(grNode);
+
+    }
+    grNode = nodeGraphicsItem;
+    grNode->initUI();
+    grNode->setTitle(m_title);
+
+    scene->graphicsScene()->addItem(grNode);
+
+    for (Socket* i : inputs) {
+        i->getGraphicsSocket()->setParentItem(grNode);
+        i->updateSocketPosition();
+    }
+
+    for (Socket* o : outputs) {
+        o->getGraphicsSocket()->setParentItem(grNode);
+        o->updateSocketPosition();
+    }
+}

@@ -16,16 +16,16 @@ NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
     , node(node)
 {
-    initTitle();
-    setTitle("Node Graphics Item");
-    initUI();
-    initItemWidget();
+
 }
 
 void NodeGraphicsItem::initUI()
 {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemIsMovable, true);
+    initTitle();
+    setTitle("Node Graphics Item");
+    initItemWidget();
 }
 
 void NodeGraphicsItem::initTitle()
@@ -141,4 +141,3 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void NodeGraphicsItem::onNodeMoved() {
     lastSelectedState = true;
 }
-

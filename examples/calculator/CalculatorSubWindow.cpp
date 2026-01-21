@@ -1,6 +1,6 @@
 #include "CalculatorSubWindow.h"
 #include "../../Scene.h"
-#include "Node.h"
+#include "CalculatorNode.h"
 #include "NodeEditorGraphicsView.h"
 #include "examples/calculator/CalculatorConfig.h"
 #include <QDebug>
@@ -88,7 +88,7 @@ void CalculatorSubWindow::onDrop(QDropEvent* event)
              << "scene:" << scenePos;
 
     // TODO: Update node constructor / inputs & outputs as needed
-    Node* node = new Node(getScene(), text, {1,1}, {2});
+    CalculatorNode* node = new CalculatorNode(getScene(), opCode, text, {1,1}, {2});
     node->setPos(scenePos.x(), scenePos.y());
     event->setDropAction(Qt::MoveAction);
     event->accept();

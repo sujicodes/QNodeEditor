@@ -35,6 +35,7 @@ public:
 
     void removeEdge(Edge* edge);
     void removeAllEdges();
+    void updateSocketPosition();
 
     QJsonObject serialize() const override;
     void deserialize(

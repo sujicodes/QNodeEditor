@@ -7,12 +7,16 @@
 #include <QPen>
 #include <QBrush>
 #include <QFont>
+#include <QJsonObject>
+#include <QJsonValue>
+
 
 class Node;
 
 class NodeGraphicsItem : public QGraphicsItem {
 public:
     NodeGraphicsItem(Node *node, QGraphicsItem *parent = nullptr);
+    virtual ~NodeGraphicsItem() = default;
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
@@ -20,7 +24,6 @@ public:
     void setTitle(const QString &title);
     QString title() const;
     QWidget* itemWidget;
-    virtual QWidget* setItemWidget() const;
 
     Node* getNode() const { return node; }
     float getWidth() const { return width; }
@@ -37,15 +40,18 @@ public:
     void setTitleHeight(float t) { titleHeight = t; }
     void setLastSelectedState(bool s) { lastSelectedState = s; }
     void onNodeMoved();
+    virtual void setNodeContent(const QJsonValue &data) {return;}
+    virtual QJsonObject getNodeContent() const {return QJsonObject();};
+    void initUI();
 
 private slots:
 
 protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    virtual QWidget* setItemWidget() const;
 
 
 private:
-    void initUI();
     void initTitle();
     void initItemWidget();
 

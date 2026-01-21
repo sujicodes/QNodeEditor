@@ -10,10 +10,7 @@ Socket::Socket(Node* node, int index, int position, bool allowMultiEdges)
 {
 
     grSocket = new SocketGraphicsItem(this);
-
-    // Position the socket based on the node's layout logic
-    std::pair<float, float> pos = node->getSocketPosition(index, position);
-    grSocket->setPos(QPointF(pos.first, pos.second));
+    updateSocketPosition();
 }
 
 QPointF Socket::getSocketPosition() const {
@@ -36,6 +33,11 @@ bool Socket::hasConnectedEdge() const
 QList<Edge*> Socket::getConnectedEdges() const
 {
     return edges;
+}
+
+void Socket::updateSocketPosition(){
+    std::pair<float, float> pos = node->getSocketPosition(index, position);
+    grSocket->setPos(QPointF(pos.first, pos.second));
 }
 
 QJsonObject Socket::serialize() const {

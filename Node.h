@@ -26,7 +26,8 @@ public:
 
     void addInput(Socket* input);
     void addOutput(Socket* output);
-    NodeGraphicsItem* getNodeGraphicsItem() { return grNode; }
+    virtual NodeGraphicsItem* getNodeGraphicsItem() { return grNode; }
+    void setNodeGraphicsItem(NodeGraphicsItem* nodeGraphicsItem);
     Scene* getScene() { return scene; }
     void updateConnectedEdges();
     QList<Edge*> getConnectedEdges();
@@ -55,7 +56,7 @@ private:
     Scene* scene;
     QString m_title;
     float socketSpacing = 22.0f;
-    NodeGraphicsItem* grNode;
+    NodeGraphicsItem* grNode = nullptr;
 };
 
 #endif // NODE_H
