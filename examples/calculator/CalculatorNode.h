@@ -8,21 +8,24 @@
 class CalculatorNode : public Node
 {
 public:
-    // Constructor
+    static constexpr int OpCode = 0;
+    static inline const QString OpTitle = "Undefined";
+    static inline const QString contentLabel = "";
+    static inline const QString contentLabelObjName = "calc_node_bg";
+
+
     CalculatorNode(
         Scene* scene,
-        int opCode = 1,
-        const QString& opTitle= "test",
+        const QString& opTitle = OpTitle,
         const std::vector<int>& inputs = {2, 2},
         const std::vector<int>& outputs = {1}
     );
 
 
-    int m_opCode;
-    QString m_opTitle;
-    QString m_contentLabel;
-    QString m_contentLabelObjName;
+
     QJsonObject serialize() const override;
+    QString nodeType() const override { return "CalculatorNode"; }
+    
 
 };
 

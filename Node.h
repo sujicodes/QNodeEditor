@@ -6,6 +6,7 @@
 #include <vector>
 #include <utility>
 #include <sstream>
+#include "NodeRegistry.h"
 
 class Scene;
 class NodeGraphicsItem;
@@ -24,6 +25,7 @@ public:
 
     std::pair<float, float> getSocketPosition(int index, int position);
 
+    virtual QString nodeType()const {return "Node";}
     void addInput(Socket* input);
     void addOutput(Socket* output);
     virtual NodeGraphicsItem* getNodeGraphicsItem() { return grNode; }
@@ -59,4 +61,5 @@ private:
     NodeGraphicsItem* grNode = nullptr;
 };
 
+REGISTER_NODE(Node, "Node");
 #endif // NODE_H

@@ -13,7 +13,7 @@
 class NodeRegistry
 {
 public:
-    using NodeFactory = std::function<Node*(Scene*, const QJsonObject&)>;
+    using NodeFactory = std::function<Node*(Scene*)>;
 
     static NodeRegistry& instance()
     {
@@ -30,11 +30,15 @@ public:
         factories[typeName] = factory;
     }
 
-    Node* createNode(const QString& typeName, Scene* scene, const QJsonObject& data) const
+    Node* createNode(const QString& typeName, Scene* scene) const
     {
+        qDebug() << typeName;
         auto it = factories.find(typeName);
-        if (it == factories.end()) return nullptr;
-        return it->second(scene, data);
+        if (it == factories.end()){ 
+            qWarning() << typeName << " is not registered";
+            return nullptr;
+        }
+        return it->second(scene);
     }
 
 private:
@@ -46,10 +50,8 @@ private:
     static bool _##NodeClass##_registered = []() {                  \
         NodeRegistry::instance().registerType(                      \
             TypeName,                                               \
-            [](Scene* scene, const QJsonObject& data) -> Node* {    \
+            [](Scene* scene) -> Node* {                             \
                 NodeClass* node = new NodeClass(scene);             \
-                std::unordered_map<qint64, Serializable*> dummyMap; \
-                node->deserialize(data, dummyMap, true);            \
                 return node;                                        \
             });                                                     \
         return true;                                                \

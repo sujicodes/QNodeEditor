@@ -150,6 +150,7 @@ void Node::remove() {
 
 QJsonObject Node::serialize() const {
     QJsonObject obj;
+    obj["type"] = nodeType();
     obj["id"] = id;
     obj["title"] = m_title;
     obj["pos_x"] = grNode ? grNode->scenePos().x() : 0.0;

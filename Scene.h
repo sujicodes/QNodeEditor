@@ -18,6 +18,7 @@ class Scene : public Serializable {
 public:
     Scene();
 
+    Node* createNode(QString type);
     void addNode(Node* node);
     void addEdge(Edge* edge);
     void removeNode(Node* node);

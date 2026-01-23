@@ -12,6 +12,7 @@
 #include <QPixmap>
 #include <QDebug>
 #include <qgraphicsview.h>
+#include "UndoCommands.h"
 
 CalculatorSubWindow::CalculatorSubWindow(QWidget *parent)
     : NodeEditorWidget(parent)
@@ -87,9 +88,15 @@ void CalculatorSubWindow::onDrop(QDropEvent* event)
              << "mouse:" << event->pos()
              << "scene:" << scenePos;
 
-    // TODO: Update node constructor / inputs & outputs as needed
-    CalculatorNode* node = new CalculatorNode(getScene(), opCode, text, {1,1}, {2});
-    node->setPos(scenePos.x(), scenePos.y());
+
+    
+    getScene()->getHistory()->push(
+        new CreateNodeCommand(
+            getScene(),
+            "CalculatorNode",                // must match registry type
+            scenePos                  // mouse position
+        )
+    );
     event->setDropAction(Qt::MoveAction);
     event->accept();
 }

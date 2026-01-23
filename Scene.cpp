@@ -33,6 +33,15 @@ void Scene::initUI()
     _graphicsScene->setGraphicsScene(sceneWidth, sceneHeight);  // You’ll need to add this method in your scene class
 }
 
+ Node* Scene::createNode(QString type)
+{
+    Node* node = NodeRegistry::instance().createNode(
+                type,
+                this
+            );
+    return node;
+}
+
 void Scene::addNode(Node* node)
 {
     nodes.append(node);
