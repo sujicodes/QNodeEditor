@@ -14,6 +14,7 @@
 #include "Socket.h"
 #include "history.h"
 #include "UndoCommands.h"
+#include "examples/calculator/CalculatorNodeBase.h"
 
 Scene::Scene()
     : sceneWidth(64000), sceneHeight(64000)
@@ -39,6 +40,7 @@ void Scene::initUI()
                 type,
                 this
             );
+            
     return node;
 }
 

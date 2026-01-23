@@ -19,7 +19,7 @@ private:
     void addMyItems();
     void addMyItem(const QString& name,
                    const QString& iconPath = QString(),
-                   int opCode = 0);
+                   const QString& className = QString());
 };
 
 #endif // DRAGLISTWIDGET_H

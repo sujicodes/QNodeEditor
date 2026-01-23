@@ -42,7 +42,7 @@ public:
     void onNodeMoved();
     virtual void setNodeContent(const QJsonValue &data) {return;}
     virtual QJsonObject getNodeContent() const {return QJsonObject();};
-    void initUI();
+        void initUI();
 
 private slots:
 
@@ -71,7 +71,7 @@ private:
 
     QPointF startPos;
 
-    Node *node;
+    Node* node;
 
     QPen penDefault = QPen(QColor("#7F000000"));
     QPen penSelected = QPen(QColor("#FFFFA637"));

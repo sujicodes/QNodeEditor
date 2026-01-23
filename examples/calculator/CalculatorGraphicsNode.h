@@ -2,12 +2,12 @@
 #define CALCULATORGRAPHICSNODE_H
 
 #include "NodeGraphicsItem.h"
-#include "CalculatorNode.h"
+#include "CalculatorNodeBase.h"
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QLabel>
 
-class CalculatorNode;
+class CalculatorNodeBase;
 
 class CalculatorGraphicsNode : public NodeGraphicsItem
 {
@@ -16,7 +16,7 @@ public:
     
     void setNodeContent(const QJsonValue &data) override{ return;}
     QJsonObject getNodeContent() const override {return QJsonObject();}
-    CalculatorNode* getCalculatorNode() const;
+    CalculatorNodeBase* getCalculatorNodeBase() const;
 
 
 protected:

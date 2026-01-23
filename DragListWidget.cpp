@@ -36,17 +36,17 @@ void DragListWidget::initUI()
 
 void DragListWidget::addMyItems()
 {
-    //addMyItem("Input",     ":/icons/in.png");
-    //addMyItem("Output",    ":/icons/out.png");
-    addMyItem("Add",       ":/icons/plus.png");
-    addMyItem("Substract", ":/icons/minus.png");
-    addMyItem("Multiply",  ":/icons/multiply.png");
-    addMyItem("Divide",    ":/icons/divide.png");
+    addMyItem("Input",     ":/icons/in.png", "InputNode");
+    addMyItem("Output",    ":/icons/out.png", "OutputNode");
+    addMyItem("Add",       ":/icons/plus.png", "AddNode");
+    addMyItem("Subtract", ":/icons/minus.png", "SubtractNode");
+    addMyItem("Multiply",  ":/icons/multiply.png", "MultiplyNode");
+    addMyItem("Divide",    ":/icons/divide.png", "DivideNode");
 }
 
 void DragListWidget::addMyItem(const QString& name,
                                const QString& iconPath,
-                               int opCode)
+                               const QString& className)
 {
     auto* item = new QListWidgetItem(name, this);
 
@@ -69,7 +69,7 @@ void DragListWidget::addMyItem(const QString& name,
 
     // Match PyQt data roles
     item->setData(Qt::UserRole, pixmap);
-    item->setData(Qt::UserRole + 1, opCode);
+    item->setData(Qt::UserRole + 1, className);
 }
 
 void DragListWidget::startDrag(Qt::DropActions /*supportedActions*/)
@@ -78,7 +78,7 @@ void DragListWidget::startDrag(Qt::DropActions /*supportedActions*/)
     if (!item) return;
 
     // Retrieve the operation code
-    NodeOpCode opCode = static_cast<NodeOpCode>(item->data(Qt::UserRole + 1).toInt());
+    QString className = item->data(Qt::UserRole + 1).toString();
 
     QPixmap pixmap = qvariant_cast<QPixmap>(item->data(Qt::UserRole));
 
@@ -86,8 +86,8 @@ void DragListWidget::startDrag(Qt::DropActions /*supportedActions*/)
     QDataStream dataStream(&itemData, QIODevice::WriteOnly);
     qDebug() << "text length:" << QString(item->text()).length();
 
-    dataStream << qint32(opCode);
     dataStream << QString(item->text());
+    dataStream << QString(className);
     dataStream << item->data(Qt::UserRole).value<QPixmap>();
 
     QMimeData* mimeData = new QMimeData;

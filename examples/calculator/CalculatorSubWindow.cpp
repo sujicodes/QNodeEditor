@@ -1,6 +1,6 @@
 #include "CalculatorSubWindow.h"
 #include "../../Scene.h"
-#include "CalculatorNode.h"
+#include "CalculatorNodeBase.h"
 #include "NodeEditorGraphicsView.h"
 #include "examples/calculator/CalculatorConfig.h"
 #include <QDebug>
@@ -74,26 +74,26 @@ void CalculatorSubWindow::onDrop(QDropEvent* event)
     QDataStream dataStream(&eventData, QIODevice::ReadOnly);
 
     QPixmap pixmap;
-    qint32 opCode;
+    QString className;
     QString text;
 
-    dataStream >> opCode;        // Read operation code
     dataStream >> text;
+    dataStream >> className;        // Read operation code
     dataStream >> pixmap;     // Read display text
 
     // Map the mouse position in the widget to the scene coordinates
     QPointF scenePos = getScene()->graphicsScene()->views().first()->mapToScene(event->pos());
 
-    qDebug() << "GOT DROP: [" << opCode << "] '" << text << "'"
+    qDebug() << "GOT DROP: [" << className << "] '" << text << "'"
              << "mouse:" << event->pos()
              << "scene:" << scenePos;
 
-
+   
     
     getScene()->getHistory()->push(
         new CreateNodeCommand(
             getScene(),
-            "CalculatorNode",                // must match registry type
+            className,                // must match registry type
             scenePos                  // mouse position
         )
     );

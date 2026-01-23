@@ -1,5 +1,5 @@
 #include "CalculatorGraphicsNode.h"
-#include "CalculatorNode.h"
+#include "CalculatorNodeBase.h"
 
 
 CalculatorGraphicsNode::CalculatorGraphicsNode(Node* node)
@@ -11,15 +11,27 @@ CalculatorGraphicsNode::CalculatorGraphicsNode(Node* node)
     setPadding(8);
 }
 
-CalculatorNode* CalculatorGraphicsNode::getCalculatorNode() const
+CalculatorNodeBase* CalculatorGraphicsNode::getCalculatorNodeBase() const
 {
-    return dynamic_cast<CalculatorNode*>(getNode());
+    auto* calcNode = dynamic_cast<CalculatorNodeBase*>(getNode());
+
+    qDebug() << typeid(*calcNode).name();         // MultiplyNode
+    qDebug() << calcNode->getContentLabel();  
+    qDebug() << "IMNRWRWRESAS";
+    return calcNode;
 }
 
 QWidget* CalculatorGraphicsNode::setItemWidget() const
-{
 
-    auto* label = new QLabel("test");
-    return label;
+{
+    auto* calcNode = getCalculatorNodeBase();
+    if(!calcNode) return new QWidget();
+
+    QString label = calcNode->getContentLabel();  // virtual call
+    if(!label.isEmpty()){
+        return new QLabel(label);
+    }
+
+    return new QWidget();
 }
 

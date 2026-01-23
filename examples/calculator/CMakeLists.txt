@@ -4,7 +4,9 @@ set(SOURCES
     CalculatorGraphicsNode.cpp
     main.cpp
     CalculatorConfig.h
-    CalculatorNode.cpp
+    CalculatorNodeBase.cpp
+    CalculatorNodes.h
+    CalculatorNodes.cpp
 )
 
 add_executable(calculator ${SOURCES})

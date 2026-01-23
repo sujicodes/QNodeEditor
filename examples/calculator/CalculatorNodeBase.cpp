@@ -1,7 +1,7 @@
-#include "CalculatorNode.h"
+#include "CalculatorNodeBase.h"
 #include "CalculatorGraphicsNode.h"
 
-CalculatorNode::CalculatorNode(
+CalculatorNodeBase::CalculatorNodeBase(
     Scene* scene,
     const QString& opTitle,
     const std::vector<int>& inputs,
@@ -14,7 +14,7 @@ CalculatorNode::CalculatorNode(
 }
 
 
-QJsonObject CalculatorNode::serialize() const {
+QJsonObject CalculatorNodeBase::serialize() const {
     QJsonObject obj = Node::serialize();
     return obj;
 }
