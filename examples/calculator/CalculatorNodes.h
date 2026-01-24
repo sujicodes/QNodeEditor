@@ -10,11 +10,16 @@ public:
     static inline const QString ContentLabel = "+";
 
     explicit AddNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle) {}
+        : CalculatorNodeBase(scene, OpTitle) {
+         initGraphics();
+    }
         
    QString getContentLabel() const override { return ContentLabel; }
 };
 
+// ----------------------------------
+// Subtract
+// ----------------------------------
 class SubtractNode final : public CalculatorNodeBase {
 public:
     static inline const QString Icon = "icons/sub.png";
@@ -22,11 +27,17 @@ public:
     static inline const QString ContentLabel = "-";
 
     explicit SubtractNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle) {}
-        
-   QString getContentLabel() const override { return ContentLabel; }
+        : CalculatorNodeBase(scene, OpTitle)
+    {
+        initGraphics();
+    }
+
+    QString getContentLabel() const override { return ContentLabel; }
 };
 
+// ----------------------------------
+// Multiply
+// ----------------------------------
 class MultiplyNode final : public CalculatorNodeBase {
 public:
     static inline const QString Icon = "icons/mul.png";
@@ -34,11 +45,17 @@ public:
     static inline const QString ContentLabel = "*";
 
     explicit MultiplyNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle) {}
+        : CalculatorNodeBase(scene, OpTitle)
+    {
+        initGraphics();
+    }
 
-   QString getContentLabel() const override { return ContentLabel; }
+    QString getContentLabel() const override { return ContentLabel; }
 };
 
+// ----------------------------------
+// Divide
+// ----------------------------------
 class DivideNode final : public CalculatorNodeBase {
 public:
     static inline const QString Icon = "icons/divide.png";
@@ -46,21 +63,46 @@ public:
     static inline const QString ContentLabel = "/";
 
     explicit DivideNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle) {}
-            
-   QString getContentLabel() const override { return "/"; }
+        : CalculatorNodeBase(scene, OpTitle)
+    {
+        initGraphics();
+    }
+
+    QString getContentLabel() const override { return ContentLabel; }
 };
 
+// ----------------------------------
+// Input
+// ----------------------------------
 class InputNode final : public CalculatorNodeBase {
 public:
     static inline const QString Icon = "icons/in.png";
     static inline const QString OpTitle = "Input";
 
     explicit InputNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle, {},{3}) {}
-            
-   QString getContentLabel() const override { return ""; }
+        : CalculatorNodeBase(scene, OpTitle, {}, {3})
+    {
+        initGraphics();
+    }
+
+    QString getContentLabel() const override { return ""; }
 };
 
+// ----------------------------------
+// Output
+// ----------------------------------
+class OutputNode final : public CalculatorNodeBase {
+public:
+    static inline const QString Icon = "icons/out.png";
+    static inline const QString OpTitle = "Output";
+
+    explicit OutputNode(Scene* scene)
+        : CalculatorNodeBase(scene, OpTitle, {1}, {})
+    {
+        initGraphics();
+    }
+
+    QString getContentLabel() const override { return ""; }
+};
 
 #endif // CalculatorNodes_H

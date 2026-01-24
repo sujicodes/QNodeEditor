@@ -34,6 +34,7 @@ public:
     inline static const int EDGE_CP_ROUNDNESS = 100;
 
     Edge* getEdge() const {return edge;}
+    void updatePath();
     void setLastSelectedState(bool s) { lastSelectedState = s; }
 
 protected:

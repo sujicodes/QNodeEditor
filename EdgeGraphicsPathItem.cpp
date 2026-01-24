@@ -50,11 +50,13 @@ void EdgeGraphicsPathItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void EdgeGraphicsPathItem::setSource(const QPointF& pos)
 {
     posSource = pos;
+    updatePath();
 }
 
 void EdgeGraphicsPathItem::setDestination(const QPointF& pos)
 {
     posDestination = pos;
+    updatePath();
 }
 
 QPointF EdgeGraphicsPathItem::getSource() const
@@ -77,13 +79,19 @@ QPainterPath EdgeGraphicsPathItem::shape() const
     return calcPath();
 }
 
+void EdgeGraphicsPathItem::updatePath()
+{
+    prepareGeometryChange();
+    setPath(calcPath());
+    update();
+}
+
+
 void EdgeGraphicsPathItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    // Python: self.setPath(self.calcPath())
-    setPath(calcPath());
 
     if (!edge || !edge->getEndSocket()) {
         painter->setPen(penDragging);

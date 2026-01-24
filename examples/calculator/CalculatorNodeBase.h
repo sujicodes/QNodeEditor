@@ -33,6 +33,8 @@ public:
     QJsonObject serialize() const override;
     QString nodeType() const override { return "CalculatorNodeBase"; }
     virtual QString getContentLabel() const { return ""; }
+
+    void initGraphics();
     
 
 };

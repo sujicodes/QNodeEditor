@@ -9,7 +9,6 @@ CalculatorNodeBase::CalculatorNodeBase(
 )
     : Node(scene, opTitle, inputs, outputs)
 {
-    setNodeGraphicsItem(new CalculatorGraphicsNode(this));
     qDebug() << "IM NEWWWWWWW";
 }
 
@@ -17,4 +16,10 @@ CalculatorNodeBase::CalculatorNodeBase(
 QJsonObject CalculatorNodeBase::serialize() const {
     QJsonObject obj = Node::serialize();
     return obj;
+}
+
+
+void CalculatorNodeBase::initGraphics()
+{
+    setNodeGraphicsItem(new CalculatorGraphicsNode(this));
 }
