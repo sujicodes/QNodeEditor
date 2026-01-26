@@ -171,9 +171,6 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
-    if (node->getScene()->isEdgeDragging())
-        event->ignore();
-        return;
 
     bool current = isSelected();
 

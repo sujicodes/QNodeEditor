@@ -1,5 +1,7 @@
 #include "CalculatorGraphicsNode.h"
 #include "CalculatorNodeBase.h"
+#include "CalculatorNodes.h"
+#include <qlineedit.h>
 
 
 CalculatorGraphicsNode::CalculatorGraphicsNode(Node* node)
@@ -37,9 +39,22 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
         return lbl;
 
     } else if (calcNode->nodeType() == "InputNode"){
-        QLabel* lbl = new QLabel("1");
-        lbl->setAlignment(Qt::AlignLeft);
-        return lbl;
+
+        InputNode* inputNode = dynamic_cast<InputNode*>(calcNode);
+        if (inputNode) {
+            QLineEdit* lbl = new QLineEdit(inputNode->getValue());
+            lbl->setAlignment(Qt::AlignLeft);
+            QObject::connect(
+                lbl,
+                &QLineEdit::textChanged,
+                [inputNode](const QString& text)
+                {
+                    inputNode->setValue(text); // setValue is a normal method
+                }
+            );
+            return lbl;
+
+        }
     }
 
     if(!label.isEmpty()){

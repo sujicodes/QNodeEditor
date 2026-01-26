@@ -2,6 +2,9 @@
 #define CalculatorNodes_H
 
 #include "CalculatorNodeBase.h"
+#include "NodeGraphicsItem.h"
+#include <qlineedit.h>
+#include <qwidget.h>
 
 class AddNode final : public CalculatorNodeBase {
 public:
@@ -91,6 +94,26 @@ public:
 
     QString getContentLabel() const override { return ""; }
     QString nodeType() const override { return "InputNode"; }
+    void setValue(const QString& val) {value = val;}
+    const QString& getValue() {return value;}
+
+    QJsonObject serialize() const override {
+        QJsonObject obj = CalculatorNodeBase::serialize();
+        obj["value"] = value;
+        return obj;
+    }
+
+    void deserialize(const QJsonObject& data,
+                     std::unordered_map<qint64, Serializable*>& hashmap,
+                     bool restoreId) override {
+        CalculatorNodeBase::deserialize(data, hashmap, restoreId);
+        value = data["value"].toString();
+        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(value);
+
+    }
+
+private:
+    QString value;
 };
 
 // ----------------------------------

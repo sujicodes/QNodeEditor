@@ -261,6 +261,7 @@ void Node::deserialize(
     inputs.clear();
     for (const auto& socketData : inputsList) {
         auto* newSocket = new Socket(this,
+                                     socketData["type"].toInt(),
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
         newSocket->deserialize(socketData, hashmap, restoreId);
@@ -283,6 +284,7 @@ void Node::deserialize(
     outputs.clear();
     for (const auto& socketData : outputsList) {
         auto* newSocket = new Socket(this,
+                                     socketData["type"].toInt(),
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
         newSocket->deserialize(socketData, hashmap, restoreId);
