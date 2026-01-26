@@ -9,23 +9,24 @@
 
 
 
-Node::Node(Scene* scene, const QString& title, const std::vector<int>& in, const std::vector<int>& outs)
+Node::Node(Scene* scene, const QString& title, const QList<int>& in, const QList<int>& outs)
     : scene(scene){
 
     setNodeGraphicsItem(new NodeGraphicsItem(this));
     setTitle(title);
-
+    //setInputSocketPosition(Socket::LEFT_CENTER);
+    //setOutputSocketPosition(Socket::RIGHT_CENTER);
     scene->addNode(this);
-    
+
     int counter = 0;
     for (int i : in) {
-        Socket* socket = new Socket(this, counter++, Socket::LEFT_TOP);
+        Socket* socket = new Socket(this, Socket::INPUT, counter++, getInputSocketPosition());
         addInput(socket);
     }
 
     counter = 0;
     for (int i : outs) {
-        Socket* socket = new Socket(this, counter++, Socket::RIGHT_TOP, true);
+        Socket* socket = new Socket(this, Socket::OUTPUT, counter++, getOutputSocketPosition(), true);
         addOutput(socket);
     }
 }
@@ -48,20 +49,75 @@ void Node::addOutput(Socket *output) {
     outputs.push_back(output);
 }
 
-std::pair<float, float> Node::getSocketPosition(int index, int position){
+void Node::updateSockets()
+{
+    for (int i = 0; i < inputs.size(); ++i) {
+        inputs[i]->setPosition(inputSocketPosition);
+        inputs[i]->updateSocketPosition();
+    }
 
-    float x = (position == Socket::LEFT_TOP || position == Socket::LEFT_BOTTOM) ? 0.0f : grNode->getWidth();
+    for (int i = 0; i < outputs.size(); ++i) {
+        outputs[i]->setPosition(outputSocketPosition);
+        outputs[i]->updateSocketPosition();
+    }
+}
+
+std::pair<float, float> Node::getSocketPosition(int index, int position, int type)
+{
+    float x = (position == Socket::LEFT_TOP || position == Socket::LEFT_CENTER || position == Socket::LEFT_BOTTOM)
+    ? 0.0f
+    : grNode->getWidth();
 
     float y = 0.0f;
+
+    int numOutOf;
+    if(type == Socket::INPUT){
+        qDebug() <<"inputs:"<< inputs.length();
+        numOutOf = inputs.length();
+
+    } else if (type == Socket::OUTPUT){
+        qDebug() <<"outputs:" << outputs.length();
+        numOutOf = outputs.length();
+    }
+
     if (position == Socket::LEFT_BOTTOM || position == Socket::RIGHT_BOTTOM) {
-        y = grNode->getHeight() - grNode->getEdgeSize() - grNode->getPadding() - index * socketSpacing;
+        // start from bottom
+        y = grNode->getHeight()
+            - grNode->getEdgeRoundness()
+            - grNode->getTitleVerticalPadding()
+            - index * socketSpacing;
+
+    } else if (position == Socket::LEFT_CENTER || position == Socket::RIGHT_CENTER) {
+        // center-aligned sockets
+        float nodeHeight = grNode->getHeight();
+        float topOffset = grNode->getTitleHeight()
+                          + 2 * grNode->getTitleVerticalPadding()
+                          + grNode->getEdgePadding();
+        float availableHeight = nodeHeight - topOffset;
+
+        float totalHeightOfAllSockets = numOutOf * socketSpacing;
+        float newTop = availableHeight - totalHeightOfAllSockets;
+
+        y = topOffset + availableHeight / 2.0f + (index - 0.5f) * socketSpacing;
+
+        if (numOutOf > 1) {
+            y -= socketSpacing * (numOutOf - 1) / 2.0f;
+        }
+
+    } else if (position == Socket::LEFT_TOP || position == Socket::RIGHT_TOP) {
+        // start from top
+        y = grNode->getTitleHeight()
+            + grNode->getTitleVerticalPadding()
+            + grNode->getEdgeRoundness()
+            + index * socketSpacing;
+
     } else {
-        y = grNode->getTitleHeight() + grNode->getPadding() + grNode->getEdgeSize() + index * socketSpacing;
+        // fallback, should never happen
+        y = 0.0f;
     }
 
     return { x, y };
 }
-
 
 QPointF Node::pos() const {
     return grNode->pos();
@@ -73,7 +129,7 @@ void Node::setPos(float x, float y) {
 
 
 void Node::updateConnectedEdges()
-{   
+{
     for (size_t i = 0; i < inputs.size(); ++i) {
         Socket* socket = inputs.at(i);
 
@@ -177,7 +233,7 @@ void Node::deserialize(
     std::unordered_map<qint64, Serializable*>& hashmap,
     bool restoreId
     ) {
-    
+
     if (restoreId) {
         // Set ID and add to hashmap
         id = static_cast<qint64>(data["id"].toDouble());
@@ -258,3 +314,27 @@ void Node::setNodeGraphicsItem(NodeGraphicsItem* nodeGraphicsItem){
         o->updateSocketPosition();
     }
 }
+
+int Node::getInputSocketPosition() const
+{
+    return inputSocketPosition;
+}
+
+int Node::getOutputSocketPosition() const
+{
+    return outputSocketPosition;
+}
+
+void Node::setInputSocketPosition(int value)
+{
+    inputSocketPosition = value;
+    updateSockets();
+
+}
+
+void Node::setOutputSocketPosition(int value)
+{
+    outputSocketPosition = value;
+    updateSockets();
+}
+

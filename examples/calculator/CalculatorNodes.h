@@ -14,7 +14,8 @@ public:
          initGraphics();
     }
         
-   QString getContentLabel() const override { return ContentLabel; }
+    QString getContentLabel() const override { return ContentLabel; }
+    QString nodeType() const override { return "AddNode"; }
 };
 
 // ----------------------------------
@@ -33,6 +34,7 @@ public:
     }
 
     QString getContentLabel() const override { return ContentLabel; }
+    QString nodeType() const override { return "SubtractNode"; }
 };
 
 // ----------------------------------
@@ -51,6 +53,7 @@ public:
     }
 
     QString getContentLabel() const override { return ContentLabel; }
+    QString nodeType() const override { return "MultiplyNode"; }
 };
 
 // ----------------------------------
@@ -69,6 +72,7 @@ public:
     }
 
     QString getContentLabel() const override { return ContentLabel; }
+    QString nodeType() const override { return "OutputNode"; }
 };
 
 // ----------------------------------
@@ -86,6 +90,7 @@ public:
     }
 
     QString getContentLabel() const override { return ""; }
+    QString nodeType() const override { return "InputNode"; }
 };
 
 // ----------------------------------
@@ -103,6 +108,7 @@ public:
     }
 
     QString getContentLabel() const override { return ""; }
+    QString nodeType() const override { return "OutputNode"; }
 };
 
 #endif // CalculatorNodes_H

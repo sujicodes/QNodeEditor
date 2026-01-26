@@ -13,20 +13,28 @@ class Edge;
 
 class Socket : public Serializable {
 public:
-    Socket(Node* node, int index = 0, int position = LEFT_TOP, bool allowMultiEdges = false);
+    Socket(Node* node, int type, int index = 0, int position = LEFT_TOP,  bool allowMultiEdges = false, bool isInput = false);
 
     SocketGraphicsItem* getGraphicsSocket() const { return grSocket; }
     static const int LEFT_TOP = 1;
-    static const int LEFT_BOTTOM = 2;
-    static const int RIGHT_TOP = 3;
-    static const int RIGHT_BOTTOM = 4;
+    static const int LEFT_CENTER  = 2;
+    static const int LEFT_BOTTOM  = 3;
+    static const int RIGHT_TOP    = 4;
+    static const int RIGHT_CENTER = 5;
+    static const int RIGHT_BOTTOM = 6;
+
+    static const int INPUT = 6;
+    static const int OUTPUT = 8;
+
 
     bool allowedMultiEdges = false;
+    void setSocketType(int type){socketType = type;};
 
     void addEdge(Edge* edge);
 
     int getIndex() const { return index; }
     int getPosition() const { return position; }
+    void setPosition(int pos) {position = pos;}
     Node* getNode() const { return node; }
     QPointF getSocketPosition() const;
 
@@ -49,6 +57,7 @@ private:
     int index;
     int position;
     QList<Edge*> edges;
+    int socketType;
 
     SocketGraphicsItem* grSocket = nullptr;
     static constexpr bool DEBUG = false;

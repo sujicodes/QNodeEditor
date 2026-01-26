@@ -11,6 +11,7 @@
 #include "history.h"
 #include "UndoCommands.h"
 #include <QObject>
+#include <qgraphicssceneevent.h>
 
 NodeGraphicsItem::NodeGraphicsItem(Node *node, QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -33,8 +34,8 @@ void NodeGraphicsItem::initTitle()
     titleItem = new QGraphicsTextItem(this);
     titleItem->setDefaultTextColor(_titleColor);
     titleItem->setFont(_titleFont);
-    titleItem->setPos(padding, 0);
-    titleItem->setTextWidth(width - 2 * padding);
+    titleItem->setPos(getTitleHorizontalPadding(), 0);
+    titleItem->setTextWidth(width - 2 * getTitleHorizontalPadding());
 }
 
 QRectF NodeGraphicsItem::boundingRect() const
@@ -42,8 +43,8 @@ QRectF NodeGraphicsItem::boundingRect() const
     return QRectF(
                0,
                0,
-               2 * edgeSize + width,
-               2 * edgeSize + height
+                width,
+                height
                ).normalized();
 }
 
@@ -86,8 +87,12 @@ QWidget* NodeGraphicsItem::setItemWidget() const
 void NodeGraphicsItem::initItemWidget(){
     itemWidget = setItemWidget();
     graphicsProxyWidget = new QGraphicsProxyWidget(this);
-    itemWidget->setGeometry(edgeSize, titleHeight+edgeSize,
-            width-2*edgeSize, height-2*edgeSize-titleHeight);
+    itemWidget->setGeometry(
+        edgePadding,
+        titleHeight + edgePadding,
+        width - 2 * edgePadding,
+        height - 2 * edgePadding - titleHeight
+        );
     graphicsProxyWidget->setWidget(itemWidget);
 
 
@@ -97,9 +102,29 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     // Title
     QPainterPath pathTitle;
     pathTitle.setFillRule(Qt::WindingFill);
-    pathTitle.addRoundedRect(0, 0, width, titleHeight, edgeSize, edgeSize);
-    pathTitle.addRect(0, titleHeight - edgeSize, edgeSize, edgeSize);
-    pathTitle.addRect(width - edgeSize, titleHeight - edgeSize, edgeSize, edgeSize);
+    pathTitle.addRoundedRect(
+        0,
+        0,
+        width,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathTitle.addRect(
+        0,
+        titleHeight - edgeRoundness,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathTitle.addRect(
+        width - edgeRoundness,
+        titleHeight - edgeRoundness,
+        edgeRoundness,
+        edgeRoundness
+        );
+
 
     painter->setPen(Qt::NoPen);
     painter->setBrush(brushTitle);
@@ -108,16 +133,35 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     // Content
     QPainterPath pathContent;
     pathContent.setFillRule(Qt::WindingFill);
-    pathContent.addRoundedRect(0, titleHeight, width, height - titleHeight, edgeSize, edgeSize);
-    pathContent.addRect(0, titleHeight, edgeSize, edgeSize);
-    pathContent.addRect(width - edgeSize, titleHeight, edgeSize, edgeSize);
+    pathContent.addRoundedRect(
+        0,
+        titleHeight,
+        width,
+        height - titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathContent.addRect(
+        0,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathContent.addRect(
+        width - edgeRoundness,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
 
     painter->setBrush(brushBackground);
     painter->drawPath(pathContent.simplified());
 
     // Outline
     QPainterPath pathOutline;
-    pathOutline.addRoundedRect(0, 0, width, height, edgeSize, edgeSize);
+    pathOutline.addRoundedRect(0, 0, width, height, edgeRoundness, edgeRoundness);
 
     painter->setPen(isSelected() ? penSelected : penDefault);
     painter->setBrush(Qt::NoBrush);
@@ -127,6 +171,9 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
+    if (node->getScene()->isEdgeDragging())
+        event->ignore();
+        return;
 
     bool current = isSelected();
 
@@ -140,4 +187,45 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void NodeGraphicsItem::onNodeMoved() {
     lastSelectedState = true;
+}
+
+
+int NodeGraphicsItem::getEdgeRoundness() const
+{
+    return edgeRoundness;
+}
+
+int NodeGraphicsItem::getEdgePadding() const
+{
+    return edgePadding;
+}
+
+int NodeGraphicsItem::getTitleHorizontalPadding() const
+{
+    return titleHorizontalPadding;
+}
+
+int NodeGraphicsItem::getTitleVerticalPadding() const
+{
+    return titleVerticalPadding;
+}
+
+void NodeGraphicsItem::setEdgeRoundness(int value)
+{
+    edgeRoundness = value;
+}
+
+void NodeGraphicsItem::setEdgePadding(int value)
+{
+    edgePadding = value;
+}
+
+void NodeGraphicsItem::setTitleHorizontalPadding(int value)
+{
+    titleHorizontalPadding = value;
+}
+
+void NodeGraphicsItem::setTitleVerticalPadding(int value)
+{
+    titleVerticalPadding = value;
 }

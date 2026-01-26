@@ -17,8 +17,8 @@ public:
     CalculatorNodeBase(
         Scene* scene,
         const QString& opTitle = "",
-        const std::vector<int>& inputs = {2, 2},
-        const std::vector<int>& outputs = {1}
+        const QList<int>& inputs = {2, 2},
+        const QList<int>& outputs = {1}
     );
 
     CalculatorNodeBase& operator=(const CalculatorNodeBase& other)

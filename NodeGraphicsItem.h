@@ -28,17 +28,23 @@ public:
     Node* getNode() const { return node; }
     float getWidth() const { return width; }
     float getHeight() const { return height; }
-    float getEdgeSize() const { return edgeSize; }
-    float getPadding() const { return padding; }
     float getTitleHeight() const { return titleHeight; }
+    int getEdgeRoundness() const;
+    int getEdgePadding() const;
+    int getTitleHorizontalPadding() const;
+    int getTitleVerticalPadding() const;
 
     void setNode(Node* n) { node = n;}
     void setWidth(float w) { width = w; }
     void setHeight(float h) { height = h; }
-    void setEdgeSize(float e) { edgeSize = e; }
-    void setPadding(float p) { padding = p; }
     void setTitleHeight(float t) { titleHeight = t; }
     void setLastSelectedState(bool s) { lastSelectedState = s; }
+    void setEdgeRoundness(int value);
+    void setEdgePadding(int value);
+    void setTitleHorizontalPadding(int value);
+    void setTitleVerticalPadding(int value);
+
+
     void onNodeMoved();
     virtual void setNodeContent(const QJsonValue &data) {return;}
     virtual QJsonObject getNodeContent() const {return QJsonObject();};
@@ -63,9 +69,12 @@ private:
 
     float width = 180;
     float height = 240;
-    float edgeSize = 10.0;
     float titleHeight = 24.0;
-    float padding = 4.0;
+
+    int edgeRoundness = 6;
+    int edgePadding = 0;
+    int titleHorizontalPadding = 8;
+    int titleVerticalPadding = 10;
 
     bool lastSelectedState = false;
 

@@ -5,8 +5,8 @@
 #include "NodeGraphicsItem.h"
 
 
-Socket::Socket(Node* node, int index, int position, bool allowMultiEdges)
-    : node(node), index(index), position(position), allowedMultiEdges(allowMultiEdges)
+Socket::Socket(Node* node, int type, int index, int position,  bool allowMultiEdges,  bool isInput)
+    : socketType(type), node(node), index(index), position(position), allowedMultiEdges(allowMultiEdges)
 {
 
     grSocket = new SocketGraphicsItem(this);
@@ -15,7 +15,7 @@ Socket::Socket(Node* node, int index, int position, bool allowMultiEdges)
 
 QPointF Socket::getSocketPosition() const {
 
-    std::pair<float, float> posPair = node->getSocketPosition(index, position);
+    std::pair<float, float> posPair = node->getSocketPosition(index, position, socketType);
     QPointF res(posPair.first, posPair.second);
 
     return res;
@@ -36,7 +36,7 @@ QList<Edge*> Socket::getConnectedEdges() const
 }
 
 void Socket::updateSocketPosition(){
-    std::pair<float, float> pos = node->getSocketPosition(index, position);
+    std::pair<float, float> pos = node->getSocketPosition(index, position, socketType);
     grSocket->setPos(QPointF(pos.first, pos.second));
 }
 
@@ -46,6 +46,7 @@ QJsonObject Socket::serialize() const {
     obj["index"] = index;
     obj["allowed_multi_edges"] = allowedMultiEdges;
     obj["position"] = position;
+    obj["socket_type"] = socketType;
 
     return obj;
 }
@@ -60,6 +61,7 @@ void Socket::deserialize(
     }
     allowedMultiEdges = data["allowed_multi_edges"].toBool(); 
     hashmap[data["id"].toDouble()] = this;
+    socketType = data["socket_type"].toInt();
 
 }
 
@@ -76,3 +78,4 @@ void Socket::removeAllEdges()
             edge->remove();              // Calls your edge cleanup method
     }
 }
+

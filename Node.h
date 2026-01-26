@@ -18,12 +18,12 @@ class Node : public Serializable {
 public:
     Node(Scene* scene,
          const QString& title = "Undefined Node",
-         const std::vector<int>& in = {},
-         const std::vector<int>& outs = {});
+         const QList<int>& in = {},
+         const QList<int>& outs = {});
     
     ~Node();
 
-    std::pair<float, float> getSocketPosition(int index, int position);
+    std::pair<float, float> getSocketPosition(int index, int position, int type);
 
     virtual QString nodeType()const {return "Node";}
     void addInput(Socket* input);
@@ -32,6 +32,8 @@ public:
     void setNodeGraphicsItem(NodeGraphicsItem* nodeGraphicsItem);
     Scene* getScene() { return scene; }
     void updateConnectedEdges();
+    void updateSockets();
+
     QList<Edge*> getConnectedEdges();
     QPointF pos() const;
     void setPos(float x, float y);
@@ -47,18 +49,26 @@ public:
 
     ) override;
 
-    std::vector<Socket*> inputs;
-    std::vector<Socket*> outputs;
+    QList<Socket*> inputs;
+    QList<Socket*> outputs;
     Serializable* content = nullptr;
 
     QString getTitle() { return m_title; }
     void setTitle(const QString &value);
+
+    int getInputSocketPosition() const;
+    int getOutputSocketPosition() const;
+
+    void setInputSocketPosition(int value);
+    void setOutputSocketPosition(int value);
 
 private:
     Scene* scene;
     QString m_title;
     float socketSpacing = 22.0f;
     NodeGraphicsItem* grNode = nullptr;
+    int inputSocketPosition;
+    int outputSocketPosition;
 };
 
 REGISTER_NODE(Node, "Node");

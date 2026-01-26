@@ -303,7 +303,7 @@ void NodeEditorGraphicsView::edgeDragStart(SocketGraphicsItem* socketItem) {
 }
 
 bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
-     mode = MODE_NOOP;
+    mode = MODE_NOOP;
     qDebug() << "Edge Drag END";
 
     if (auto endSocketItem = dynamic_cast<SocketGraphicsItem*>(item)) {
