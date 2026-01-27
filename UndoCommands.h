@@ -94,7 +94,7 @@ public:
         if (!m_scene) return;
 
         // If this is the first execution, create the node
-        if (!m_node) {
+        if (m_serializedNode.isEmpty()) {
             m_node = m_scene->createNode(m_nodeType);
             if (!m_node) {
                 qWarning() << "Failed to create node of type:" << m_nodeType;

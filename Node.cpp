@@ -14,8 +14,8 @@ Node::Node(Scene* scene, const QString& title, const QList<int>& in, const QList
 
     setNodeGraphicsItem(new NodeGraphicsItem(this));
     setTitle(title);
-    //setInputSocketPosition(Socket::LEFT_CENTER);
-    //setOutputSocketPosition(Socket::RIGHT_CENTER);
+    setInputSocketPosition(Socket::LEFT_CENTER);
+    setOutputSocketPosition(Socket::RIGHT_CENTER);
     scene->addNode(this);
 
     int counter = 0;
@@ -258,7 +258,25 @@ void Node::deserialize(
     });
 
     // Deserialize inputs
-    inputs.clear();
+    for (Socket* socket : inputs) {
+            if (socket->getGraphicsSocket())
+                scene->graphicsScene()->removeItem(socket->getGraphicsSocket());
+            delete socket;
+        }
+
+        for (Socket* socket : outputs) {
+            if (socket->getGraphicsSocket())
+                scene->graphicsScene()->removeItem(socket->getGraphicsSocket());
+            delete socket;
+        }
+
+        inputs.clear();
+        outputs.clear();
+
+
+    for (const auto& socketData : inputs)
+        qDebug() << "socktee" << socketData; 
+    
     for (const auto& socketData : inputsList) {
         auto* newSocket = new Socket(this,
                                      socketData["type"].toInt(),
@@ -280,8 +298,10 @@ void Node::deserialize(
         return aKey < bKey;
     });
 
-    // Deserialize outputs
-    outputs.clear();
+    for (const auto& socketData : outputs)
+        qDebug() << "socktee" << socketData; 
+    
+    
     for (const auto& socketData : outputsList) {
         auto* newSocket = new Socket(this,
                                      socketData["type"].toInt(),
@@ -290,6 +310,8 @@ void Node::deserialize(
         newSocket->deserialize(socketData, hashmap, restoreId);
         outputs.push_back(newSocket);
     }
+
+    updateSockets();
 
     grNode->setNodeContent(data["content"]);
 }

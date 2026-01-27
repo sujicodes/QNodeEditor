@@ -18,6 +18,7 @@ SocketGraphicsItem::SocketGraphicsItem(Socket* sock)
 
     brush = QBrush(backgroundColor);
     socket = sock;
+    qDebug() << "IM BEING MADE";
 }
 
 QRectF SocketGraphicsItem::boundingRect() const {
