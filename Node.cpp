@@ -362,3 +362,156 @@ void Node::setOutputSocketPosition(int value)
     updateSockets();
 }
 
+bool Node::isDirty() const
+{
+    return m_isDirty;
+}
+
+void Node::markDirty(bool newValue)
+{
+    m_isDirty = newValue;
+    if (m_isDirty)
+        onMarkedDirty();
+}
+
+void Node::markChildrenDirty(bool newValue)
+{
+    for (Node* node : getChildrenNodes()) {
+        node->markDirty(newValue);
+    }
+}
+
+void Node::markDescendantsDirty(bool newValue)
+{
+    for (Node* node : getChildrenNodes()) {
+        node->markDirty(newValue);
+        node->markChildrenDirty(newValue);
+    }
+}
+
+bool Node::isInvalid() const
+{
+    return m_isInvalid;
+}
+
+void Node::markInvalid(bool newValue)
+{
+    m_isInvalid = newValue;
+    if (m_isInvalid)
+        onMarkedInvalid();
+}
+
+
+void Node::markChildrenInvalid(bool newValue)
+{
+    for (Node* node : getChildrenNodes()) {
+        node->markInvalid(newValue);
+    }
+}
+
+void Node::markDescendantsInvalid(bool newValue)
+{
+    for (Node* node : getChildrenNodes()) {
+        node->markInvalid(newValue);
+        node->markChildrenInvalid(newValue);
+    }
+}
+
+QVariant Node::eval()
+{
+    markDirty(false);
+    markInvalid(false);
+    return 0;
+}
+
+void Node::evalChildren()
+{
+    for (Node* node : getChildrenNodes()) {
+        node->eval();
+    }
+}
+
+std::vector<Node*> Node::getChildrenNodes() const
+{
+    std::vector<Node*> result;
+
+    if (outputs.empty())
+        return result;
+
+    for (Socket* outSocket : outputs) {
+        for (Edge* edge : outSocket->getConnectedEdges()) {
+            Socket* other = edge->getOtherSocket(outSocket);
+            if (other && other->getNode())
+                result.push_back(other->getNode());
+        }
+    }
+
+    return result;
+}
+
+void Node::onEdgeConnectionChanged(Edge* edge)
+{
+    qDebug() << this->nodeType()
+             << "::onEdgeConnectionChanged"
+             << edge;
+}
+
+void Node::onInputChanged(Edge* edge)
+{
+    qDebug() <<this->nodeType()
+             << "::onInputChanged"
+             << edge;
+
+    markDirty();
+    eval();
+}
+
+Node* Node::getInput(int index)
+{
+    if (index < 0 || index >= inputs.size())
+        return nullptr;
+
+    Socket* socket = inputs[index];
+    const auto& edges = socket->getConnectedEdges();
+    if (edges.empty())
+        return nullptr;
+
+    Socket* other = edges.front()->getOtherSocket(socket);
+    return other ? other->getNode() : nullptr;
+}
+
+QList<Node*> Node::getInputs(int index)
+{
+    QList<Node*> result;
+
+    if (index >= inputs.size())
+        return result;
+
+    Socket* inputSocket = inputs[index];
+
+    for (Edge* edge : inputSocket->getConnectedEdges()) {
+        Socket* otherSocket = edge->getOtherSocket(inputSocket);
+        if (otherSocket && otherSocket->getNode())
+            result.append(otherSocket->getNode());
+    }
+
+    return result;
+}
+
+QList<Node*> Node::getOutputs(int index)
+{
+    QList<Node*> result;
+
+    if (index >= outputs.size())
+        return result;
+
+    Socket* outputSocket = outputs[index];
+
+    for (Edge* edge : outputSocket->getConnectedEdges()) {
+        Socket* otherSocket = edge->getOtherSocket(outputSocket);
+        if (otherSocket && otherSocket->getNode())
+            result.append(otherSocket->getNode());
+    }
+
+    return result;
+}

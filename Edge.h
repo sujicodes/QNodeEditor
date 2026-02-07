@@ -24,6 +24,10 @@ public:
     void setStartSocket(Socket* socket);
     Socket* getStartSocket() { return m_startSocket; }
 
+    Socket* getOtherSocket(Socket* known_socket) const {
+        return (known_socket == m_endSocket) ? m_startSocket : m_endSocket;
+    }
+
     void updatePositions();
     void removeFromSockets();
     void remove();

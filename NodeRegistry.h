@@ -9,7 +9,6 @@
 #include "Node.h"
 #include "Scene.h"
 
-
 class NodeRegistry
 {
 public:
@@ -21,24 +20,28 @@ public:
         return inst;
     }
 
-    void registerType(const QString& typeName, NodeFactory factory)
+    void registerType(const QString& className, NodeFactory factory)
     {
-        if (factories.find(typeName) != factories.end()) {
-            std::cerr << "Node type already registered: " << typeName.toStdString() << "\n";
-            return;
-        }
-        factories[typeName] = factory;
+        factories[className] = factory;
     }
 
-    Node* createNode(const QString& typeName, Scene* scene) const
+    Node* createNode(const QString& className, Scene* scene) const
     {
-        qDebug() << typeName;
-        auto it = factories.find(typeName);
-        if (it == factories.end()){ 
-            qWarning() << typeName << " is not registered";
+        auto it = factories.find(className);
+        if (it == factories.end()) {
+            qWarning() << "Node not registered:" << className;
             return nullptr;
         }
         return it->second(scene);
+    }
+
+    QStringList allClassNamesSorted() const
+    {
+        QStringList keys;
+        for (const auto& pair : factories)
+            keys << pair.first;
+        keys.sort();
+        return keys;
     }
 
 private:

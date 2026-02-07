@@ -60,6 +60,7 @@ public:
 
     
     void resetLastSelectedStates();
+    QGraphicsView* getView();
 
 private:
     void initUI();

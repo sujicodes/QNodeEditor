@@ -2,6 +2,7 @@
 #include "CalculatorNodeBase.h"
 #include "CalculatorNodes.h"
 #include <qlineedit.h>
+#include <qpainter.h>
 
 
 CalculatorGraphicsNode::CalculatorGraphicsNode(Node* node)
@@ -42,7 +43,7 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
 
         InputNode* inputNode = dynamic_cast<InputNode*>(calcNode);
         if (inputNode) {
-            QLineEdit* lbl = new QLineEdit(inputNode->getValue());
+            QLineEdit* lbl = new QLineEdit(inputNode->getValue().toString() );
             lbl->setAlignment(Qt::AlignLeft);
             QObject::connect(
                 lbl,
@@ -50,6 +51,7 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
                 [inputNode](const QString& text)
                 {
                     inputNode->setValue(text); // setValue is a normal method
+                    inputNode->onInputChanged(nullptr);
                 }
             );
             return lbl;
@@ -64,3 +66,27 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
     return new QWidget();
 }
 
+
+void CalculatorGraphicsNode::paint(QPainter* painter,
+                                   const QStyleOptionGraphicsItem* option,
+                                   QWidget* widget)
+{
+    // Call base class paint first (VERY important)
+    NodeGraphicsItem::paint(painter, option, widget);
+
+    if (!getNode())
+        return;
+
+    qreal offset = 24.0;
+
+    if (getNode()->isDirty())
+        offset = 0.0;
+    else if (getNode()->isInvalid())
+        offset = 48.0;
+
+    painter->drawImage(
+        QRectF(-10.0, -10.0, 24.0, 24.0),   // target rect
+        m_icons,                            // source image
+        QRectF(offset, 0.0, 24.0, 24.0)     // source rect
+        );
+}

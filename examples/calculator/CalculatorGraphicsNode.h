@@ -21,5 +21,9 @@ public:
 
 protected:
     QWidget* setItemWidget() const override;
+    void paint(QPainter* painter,
+               const QStyleOptionGraphicsItem* option,
+               QWidget* widget = nullptr) override;
+    QImage m_icons = QImage("C:\\Users\\sujan\\Downloads\\status_icons.png");
 };
 #endif // CALCULATORGRAPHICSNODE_H

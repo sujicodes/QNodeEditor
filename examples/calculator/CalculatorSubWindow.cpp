@@ -82,8 +82,7 @@ void CalculatorSubWindow::onDrop(QDropEvent* event)
     dataStream >> pixmap;     // Read display text
 
     // Map the mouse position in the widget to the scene coordinates
-    QPointF scenePos = getScene()->graphicsScene()->views().first()->mapToScene(event->pos());
-
+    QPointF scenePos = getScene()->getView()->mapToScene(event->pos());
     qDebug() << "GOT DROP: [" << className << "] '" << text << "'"
              << "mouse:" << event->pos()
              << "scene:" << scenePos;

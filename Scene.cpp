@@ -360,4 +360,9 @@ void Scene::onItemsDeselected()
     }
 }
 
-
+QGraphicsView* Scene::getView()
+{
+    if (_graphicsScene->views().isEmpty())
+        return nullptr;
+    return _graphicsScene->views().first();
+}

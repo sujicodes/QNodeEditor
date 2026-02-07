@@ -62,6 +62,33 @@ public:
     void setInputSocketPosition(int value);
     void setOutputSocketPosition(int value);
 
+    bool isDirty() const;
+    void markDirty(bool newValue = true);
+    void onMarkedDirty() {return;};
+
+    void markChildrenDirty(bool newValue = true);
+    void markDescendantsDirty(bool newValue = true);
+
+    bool isInvalid() const;
+    void markInvalid(bool newValue = true);
+    void onMarkedInvalid(){return;}
+
+    void markChildrenInvalid(bool newValue = true);
+    void markDescendantsInvalid(bool newValue = true);
+
+    virtual void onEdgeConnectionChanged(Edge* edge);
+    virtual void onInputChanged(Edge* edge);
+
+    virtual QVariant eval();
+    void evalChildren();
+
+    std::vector<Node*> getChildrenNodes() const;
+
+    Node* getInput(int index = 0);
+    QList<Node*> getInputs(int index = 0);
+    QList<Node*> getOutputs(int index = 0);
+
+
 private:
     Scene* scene;
     QString m_title;
@@ -69,6 +96,9 @@ private:
     NodeGraphicsItem* grNode = nullptr;
     int inputSocketPosition;
     int outputSocketPosition;
+    bool m_isDirty = false;
+    bool m_isInvalid = false;
+
 };
 
 REGISTER_NODE(Node, "Node");

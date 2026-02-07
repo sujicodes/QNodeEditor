@@ -30,6 +30,8 @@ public:
     bool allowedMultiEdges = false;
     void setSocketType(int type){socketType = type;};
 
+    bool isInput(){return socketType==INPUT;}
+
     void addEdge(Edge* edge);
 
     int getIndex() const { return index; }

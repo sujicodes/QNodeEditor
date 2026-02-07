@@ -7,6 +7,7 @@
 
 class CalculatorNodeBase : public Node
 {
+
 public:
     static constexpr int OpCode = 0;
     static inline const QString OpTitle = "Undefined";
@@ -21,20 +22,19 @@ public:
         const QList<int>& outputs = {1}
     );
 
-    CalculatorNodeBase& operator=(const CalculatorNodeBase& other)
-    {
-        qDebug() << "Copy assignment called for" << typeid(*this).name();
-        if (this != &other) {
-            Node::operator=(other);
-        }
-        return *this;
-    }
+    QVariant eval() override;
+    virtual QVariant evalImplementation(){return 123;};
+
 
     QJsonObject serialize() const override;
     QString nodeType() const override { return "CalculatorNodeBase"; }
     virtual QString getContentLabel() const { return ""; }
 
     void initGraphics();
+
+protected:
+    QVariant m_value;
+
     
 
 };

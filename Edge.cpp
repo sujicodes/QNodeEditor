@@ -77,13 +77,35 @@ void Edge::removeFromSockets() {
     m_endSocket = nullptr;
 }
 
-void Edge::remove() {
+void Edge::remove()
+{
+    std::vector<Socket*> oldSockets = { m_startSocket, m_endSocket };
+    qDebug() << "# Removing Edge" << this;
+    qDebug() << " - remove edge from all sockets";
+
     removeFromSockets();
     if (scene && grEdge) {
         scene->graphicsScene()->removeItem(grEdge);
         grEdge = nullptr;
     }
     if (scene) scene->removeEdge(this);
+
+    qDebug() << " - everything is done.";
+
+    try {
+        // notify nodes from old sockets
+        for (Socket* socket : oldSockets) {
+            if (socket && socket->getNode()) {
+                socket->getNode()->onEdgeConnectionChanged(this);
+
+                if (socket->isInput())
+                    socket->getNode()->onInputChanged(this);
+            }
+        }
+    }
+    catch (...) {
+        qDebug() << "Exception while removing edge";
+    }
 }
 
 QJsonObject Edge::serialize() const {

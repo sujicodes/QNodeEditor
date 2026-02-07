@@ -3,6 +3,7 @@
 
 #include "CalculatorNodeBase.h"
 #include "NodeGraphicsItem.h"
+#include <qlabel.h>
 #include <qlineedit.h>
 #include <qwidget.h>
 
@@ -94,12 +95,37 @@ public:
 
     QString getContentLabel() const override { return ""; }
     QString nodeType() const override { return "InputNode"; }
-    void setValue(const QString& val) {value = val;}
-    const QString& getValue() {return value;}
+    void setValue(const QString& val) {m_value = val;}
+    const QVariant& getValue() {return m_value;}
+
+    QVariant evalImplementation() override
+    {
+
+        bool ok = false;
+        int s_value = getValue().toInt(&ok);
+
+        if (!ok)
+            throw std::invalid_argument("Invalid integer input");
+
+        value = s_value;
+        markDirty(false);
+        markInvalid(false);
+
+        markDescendantsInvalid(false);
+        markDescendantsDirty();
+
+        if (getNodeGraphicsItem())
+             getNodeGraphicsItem()->setToolTip("");
+
+        evalChildren();
+
+        return value;
+    }
+
 
     QJsonObject serialize() const override {
         QJsonObject obj = CalculatorNodeBase::serialize();
-        obj["value"] = value;
+        obj["value"] = value.toJsonObject();
         return obj;
     }
 
@@ -108,12 +134,12 @@ public:
                      bool restoreId) override {
         CalculatorNodeBase::deserialize(data, hashmap, restoreId);
         value = data["value"].toString();
-        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(value);
+        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(value.toString());
 
     }
 
 private:
-    QString value;
+    QVariant value;
 };
 
 // ----------------------------------
@@ -132,6 +158,40 @@ public:
 
     QString getContentLabel() const override { return ""; }
     QString nodeType() const override { return "OutputNode"; }
+    QVariant evalImplementation() override
+    {
+        Node* inputNode = getInput(0);
+
+        if (!inputNode)
+        {
+            if (getNodeGraphicsItem())
+                getNodeGraphicsItem()->setToolTip("Input is not connected");
+
+            markInvalid(true);
+            return QVariant();
+        }
+
+        QVariant val = inputNode->eval();
+
+        if (!val.isValid())
+        {
+            if (getNodeGraphicsItem())
+                getNodeGraphicsItem()->setToolTip("Input is NaN");
+
+            markInvalid(true);
+            return QVariant();
+        }
+
+        dynamic_cast<QLabel*>(getNodeGraphicsItem()->itemWidget)->setText(val.toString());
+
+        markInvalid(false);
+        markDirty(false);
+
+        if (getNodeGraphicsItem())
+            getNodeGraphicsItem()->setToolTip("");
+
+        return val;
+    }
 };
 
 #endif // CalculatorNodes_H

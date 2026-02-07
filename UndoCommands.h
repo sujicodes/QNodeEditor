@@ -166,6 +166,19 @@ public:
             m_serializedConflict = m_conflictingEdge->serialize();
     }
 
+    void notifySocket(Socket* socket)
+    {
+        if (!socket) return;
+
+        Node* node = socket->getNode();
+        if (!node) return;
+
+        node->onEdgeConnectionChanged(m_edge);
+
+        if (socket->isInput())
+            node->onInputChanged(m_edge);
+    }
+
     void redo() override {
         if (m_conflictingEdge) {
             m_conflictingEdge->remove();
@@ -191,6 +204,8 @@ public:
 
         m_edge->setStartSocket(m_start);
         m_edge->setEndSocket(m_end);
+        notifySocket(m_start);
+        notifySocket(m_end);
         m_edge->updatePositions();
         m_serializedEdge = m_edge->serialize();
     }
@@ -199,6 +214,8 @@ public:
         if (m_edge) {
             m_edge->remove();
             m_edge = nullptr;
+            notifySocket(m_start);
+            notifySocket(m_end);
         }
 
         std::unordered_map<qint64, Serializable*> hashmap;
