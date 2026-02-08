@@ -23,8 +23,7 @@ public:
     );
 
     QVariant eval() override;
-    virtual QVariant evalImplementation(){return 123;};
-
+    virtual QVariant evalImplementation();
 
     QJsonObject serialize() const override;
     QString nodeType() const override { return "CalculatorNodeBase"; }
@@ -34,6 +33,8 @@ public:
 
 protected:
     QVariant m_value;
+    virtual QVariant evalOperation(const QVariant& v1, const QVariant& v2){return 0;}
+
 
     
 

@@ -65,3 +65,37 @@ QVariant CalculatorNodeBase::eval()
         return QVariant();
     }
 }
+
+
+QVariant CalculatorNodeBase::evalImplementation()
+{
+    Node* i1 = getInput(0);
+    Node* i2 = getInput(1);
+
+    if (!i1 || !i2)
+    {
+        markInvalid(true);
+        markDescendantsDirty(true);
+
+        if (getNodeGraphicsItem())
+            getNodeGraphicsItem()->setToolTip("Connect all inputs");
+
+        return QVariant();   // None
+    }
+
+    QVariant v1 = i1->eval();
+    QVariant v2 = i2->eval();
+
+    QVariant val = evalOperation(v1, v2);
+
+    markDirty(false);
+    markInvalid(false);
+
+    if (getNodeGraphicsItem())
+         getNodeGraphicsItem()->setToolTip("");
+
+    markDescendantsDirty(true);
+    evalChildren();
+
+    return val;
+}

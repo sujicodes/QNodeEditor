@@ -7,6 +7,9 @@
 #include <qlineedit.h>
 #include <qwidget.h>
 
+// ----------------------------------
+// Add
+// ----------------------------------
 class AddNode final : public CalculatorNodeBase {
 public:
     static inline const QString Icon = "icons/add.png";
@@ -14,14 +17,20 @@ public:
     static inline const QString ContentLabel = "+";
 
     explicit AddNode(Scene* scene)
-        : CalculatorNodeBase(scene, OpTitle) {
-         initGraphics();
+        : CalculatorNodeBase(scene, OpTitle)
+    {
+        initGraphics();
     }
-        
+
     QString getContentLabel() const override { return ContentLabel; }
     QString nodeType() const override { return "AddNode"; }
-};
 
+protected:
+    QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+    {
+        return v1.toInt() + v2.toInt();
+    }
+};
 // ----------------------------------
 // Subtract
 // ----------------------------------
@@ -39,10 +48,14 @@ public:
 
     QString getContentLabel() const override { return ContentLabel; }
     QString nodeType() const override { return "SubtractNode"; }
+
+protected:
+    QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+    {
+        return v1.toInt() - v2.toInt();
+    }
 };
 
-// ----------------------------------
-// Multiply
 // ----------------------------------
 class MultiplyNode final : public CalculatorNodeBase {
 public:
@@ -58,10 +71,14 @@ public:
 
     QString getContentLabel() const override { return ContentLabel; }
     QString nodeType() const override { return "MultiplyNode"; }
+
+protected:
+    QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+    {
+        return v1.toInt() * v2.toInt();
+    }
 };
 
-// ----------------------------------
-// Divide
 // ----------------------------------
 class DivideNode final : public CalculatorNodeBase {
 public:
@@ -76,7 +93,15 @@ public:
     }
 
     QString getContentLabel() const override { return ContentLabel; }
-    QString nodeType() const override { return "OutputNode"; }
+    QString nodeType() const override { return "DivideNode"; }
+
+protected:
+    QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+    {
+        int b = v2.toInt();
+        if (b == 0) return QVariant();
+        return v1.toInt() / b;
+    }
 };
 
 // ----------------------------------
@@ -96,7 +121,7 @@ public:
     QString getContentLabel() const override { return ""; }
     QString nodeType() const override { return "InputNode"; }
     void setValue(const QString& val) {m_value = val;}
-    const QVariant& getValue() {return m_value;}
+    QString getValue() const {return m_value.toString();}
 
     QVariant evalImplementation() override
     {
@@ -107,7 +132,6 @@ public:
         if (!ok)
             throw std::invalid_argument("Invalid integer input");
 
-        value = s_value;
         markDirty(false);
         markInvalid(false);
 
@@ -119,13 +143,13 @@ public:
 
         evalChildren();
 
-        return value;
+        return s_value;
     }
 
 
     QJsonObject serialize() const override {
         QJsonObject obj = CalculatorNodeBase::serialize();
-        obj["value"] = value.toJsonObject();
+        obj["value"] = getValue();
         return obj;
     }
 
@@ -133,13 +157,11 @@ public:
                      std::unordered_map<qint64, Serializable*>& hashmap,
                      bool restoreId) override {
         CalculatorNodeBase::deserialize(data, hashmap, restoreId);
-        value = data["value"].toString();
-        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(value.toString());
+        setValue( data["value"].toString());
+        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(getValue());
 
     }
 
-private:
-    QVariant value;
 };
 
 // ----------------------------------
