@@ -268,7 +268,6 @@ QMdiSubWindow* CalculatorWindow::createMdiChild()
 
 NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
 {
-    qDebug() << "im sub:";
     QMdiSubWindow* sub = mdiArea->activeSubWindow();
     if (!sub) sub = lastActiveSubWindow;  // fallback to last active
     if (sub)

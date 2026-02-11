@@ -32,7 +32,7 @@ public:
     void initGraphics();
 
 protected:
-    QVariant m_value;
+    QVariant m_value = 0;
     virtual QVariant evalOperation(const QVariant& v1, const QVariant& v2){return 0;}
 
 

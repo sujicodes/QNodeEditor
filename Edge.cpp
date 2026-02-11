@@ -43,11 +43,6 @@ void Edge::updatePositions() {
         grEdge->setDestination(sourcePos);
     }
 
-#ifdef QT_DEBUG
-    qDebug() << " SS:" << m_startSocket;
-    qDebug() << " ES:" << m_endSocket;
-#endif
-
     grEdge->update();
 }
 

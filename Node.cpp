@@ -72,11 +72,9 @@ std::pair<float, float> Node::getSocketPosition(int index, int position, int typ
 
     int numOutOf;
     if(type == Socket::INPUT){
-        qDebug() <<"inputs:"<< inputs.length();
         numOutOf = inputs.length();
 
     } else if (type == Socket::OUTPUT){
-        qDebug() <<"outputs:" << outputs.length();
         numOutOf = outputs.length();
     }
 
@@ -412,6 +410,7 @@ void Node::markChildrenInvalid(bool newValue)
 void Node::markDescendantsInvalid(bool newValue)
 {
     for (Node* node : getChildrenNodes()) {
+        qDebug() << node->nodeType();
         node->markInvalid(newValue);
         node->markChildrenInvalid(newValue);
     }
@@ -462,8 +461,10 @@ void Node::onInputChanged(Edge* edge)
              << "::onInputChanged"
              << edge;
 
-    markDirty();
+    markDirty(true);
+    markDescendantsDirty(true);
     eval();
+
 }
 
 Node* Node::getInput(int index)

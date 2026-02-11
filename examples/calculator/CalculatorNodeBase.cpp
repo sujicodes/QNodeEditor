@@ -86,7 +86,7 @@ QVariant CalculatorNodeBase::evalImplementation()
     QVariant v1 = i1->eval();
     QVariant v2 = i2->eval();
 
-    QVariant val = evalOperation(v1, v2);
+    m_value = evalOperation(v1, v2);
 
     markDirty(false);
     markInvalid(false);
@@ -97,5 +97,5 @@ QVariant CalculatorNodeBase::evalImplementation()
     markDescendantsDirty(true);
     evalChildren();
 
-    return val;
+    return m_value;
 }

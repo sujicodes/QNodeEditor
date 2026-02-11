@@ -120,17 +120,21 @@ public:
 
     QString getContentLabel() const override { return ""; }
     QString nodeType() const override { return "InputNode"; }
-    void setValue(const QString& val) {m_value = val;}
-    QString getValue() const {return m_value.toString();}
+    void setValue(const int& val) {m_value = val;}
+    int getValue() const {
+        bool ok = false;
+        int s_value =  m_value.toInt(&ok);
+        if (!ok && m_value != "")
+            throw std::invalid_argument("Invalid integer input");
+        return s_value;
+
+    }
 
     QVariant evalImplementation() override
     {
 
         bool ok = false;
-        int s_value = getValue().toInt(&ok);
-
-        if (!ok)
-            throw std::invalid_argument("Invalid integer input");
+        int s_value = getValue();
 
         markDirty(false);
         markInvalid(false);
@@ -149,6 +153,7 @@ public:
 
     QJsonObject serialize() const override {
         QJsonObject obj = CalculatorNodeBase::serialize();
+        bool ok = false;
         obj["value"] = getValue();
         return obj;
     }
@@ -157,8 +162,12 @@ public:
                      std::unordered_map<qint64, Serializable*>& hashmap,
                      bool restoreId) override {
         CalculatorNodeBase::deserialize(data, hashmap, restoreId);
-        setValue( data["value"].toString());
-        dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget)->setText(getValue());
+        setValue(data["value"].toInt());
+        QLineEdit* field = dynamic_cast<QLineEdit*>(getNodeGraphicsItem()->itemWidget);
+        if(field){
+            field->setText(QString::number(getValue()));
+
+        }
 
     }
 

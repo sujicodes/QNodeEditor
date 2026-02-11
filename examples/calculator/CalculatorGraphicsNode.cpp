@@ -43,15 +43,18 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
 
         InputNode* inputNode = dynamic_cast<InputNode*>(calcNode);
         if (inputNode) {
-            QLineEdit* lbl = new QLineEdit(inputNode->getValue().toString() );
+            QLineEdit* lbl = new QLineEdit(QString::number(inputNode->getValue()));
             lbl->setAlignment(Qt::AlignLeft);
             QObject::connect(
                 lbl,
-                &QLineEdit::textChanged,
+                &QLineEdit::textEdited,
                 [inputNode](const QString& text)
                 {
-                    inputNode->setValue(text); // setValue is a normal method
-                    inputNode->onInputChanged(nullptr);
+                    qDebug() << "Calleddd";
+                    inputNode->markDirty(true);
+                    inputNode->markDescendantsDirty(true);
+                    inputNode->setValue(text.toInt()); // setValue is a normal method
+                    inputNode->eval();
                 }
             );
             return lbl;
