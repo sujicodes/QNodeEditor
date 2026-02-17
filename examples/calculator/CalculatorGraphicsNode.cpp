@@ -22,7 +22,6 @@ CalculatorNodeBase* CalculatorGraphicsNode::getCalculatorNodeBase() const
 
     qDebug() << typeid(*calcNode).name();
     qDebug() << calcNode->getContentLabel();  
-    qDebug() << "IMNRWRWRESAS";
     return calcNode;
 }
 
@@ -50,7 +49,6 @@ QWidget* CalculatorGraphicsNode::setItemWidget() const
                 &QLineEdit::textEdited,
                 [inputNode](const QString& text)
                 {
-                    qDebug() << "Calleddd";
                     inputNode->markDirty(true);
                     inputNode->markDescendantsDirty(true);
                     inputNode->setValue(text.toInt()); // setValue is a normal method

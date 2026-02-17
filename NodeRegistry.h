@@ -22,6 +22,10 @@ public:
 
     void registerType(const QString& className, NodeFactory factory)
     {
+        if (factories.find(className) != factories.end()) {
+            std::cerr << "Node type already registered: " << className.toStdString() << "\n";
+            return;
+        }
         factories[className] = factory;
     }
 
@@ -50,7 +54,7 @@ private:
 };
 
 #define REGISTER_NODE(NodeClass, TypeName)                          \
-    static bool _##NodeClass##_registered = []() {                  \
+     inline bool _##NodeClass##_registered = []() {                  \
         NodeRegistry::instance().registerType(                      \
             TypeName,                                               \
             [](Scene* scene) -> Node* {                             \

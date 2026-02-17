@@ -75,8 +75,6 @@ void Edge::removeFromSockets() {
 void Edge::remove()
 {
     std::vector<Socket*> oldSockets = { m_startSocket, m_endSocket };
-    qDebug() << "# Removing Edge" << this;
-    qDebug() << " - remove edge from all sockets";
 
     removeFromSockets();
     if (scene && grEdge) {

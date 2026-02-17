@@ -30,9 +30,7 @@ void CalculatorNodeBase::initGraphics()
 QVariant CalculatorNodeBase::eval()
 {
     if (!isDirty() && !isInvalid()) {
-        qDebug() << "_> returning cached"
-                 << nodeType()
-                 << "value:" << m_value;
+         // returning cached value
         return m_value;
     }
 
