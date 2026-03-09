@@ -1,4 +1,5 @@
 #include "NodeEditorGraphicsView.h"
+#include "SocketGraphicsItem.h"
 #include <QPainter>
 #include <QMouseEvent>
 #include <QEvent>
