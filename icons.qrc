@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/icons">
-        <file>icons/divide.png</file>
-        <file>icons/multiply.png</file>
-        <file>icons/plus.png</file>
-        <file>icons/substract.png</file>
-    </qresource>
-</RCC>

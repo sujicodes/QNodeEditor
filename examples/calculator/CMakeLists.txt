@@ -1,24 +1,33 @@
+cmake_minimum_required(VERSION 3.16)
+project(calculator_example VERSION 1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
+
+# Sources for the calculator example
 set(SOURCES
     CalculatorWindow.cpp
     CalculatorSubWindow.cpp
-    CalculatorGraphicsNode.cpp
     main.cpp
-    CalculatorConfig.h
-    CalculatorNodeBase.cpp
+    CalculatorNodeItemBase.cpp
+)
+
+set(HEADERS
+    CalculatorWindow.h
+    CalculatorSubWindow.h
+    CalculatorNodeItemBase.h
     CalculatorNodes.h
-    CalculatorNodes.cpp
 )
 
-add_executable(calculator ${SOURCES})
 
-target_include_directories(calculator PRIVATE
-    ${CMAKE_SOURCE_DIR}        # <-- gives access to the base node editor headers
-)
+add_executable(calculator ${SOURCES} ${HEADERS} ${RESOURCES})
 
-target_link_libraries(calculator PRIVATE
-    nodeeditor
-    Qt${QT_VERSION_MAJOR}::Widgets
-)
-
-install(TARGETS calculator
-        RUNTIME DESTINATION bin)
+# Link to node-editor (do NOT redefine)
+target_link_libraries(calculator PRIVATE node-editor Qt6::Widgets)
+target_include_directories(calculator PRIVATE ../../include)

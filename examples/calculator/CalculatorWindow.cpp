@@ -14,13 +14,12 @@
 CalculatorWindow::CalculatorWindow(QWidget *parent)
 {
     initUI();
-
 }
 
 void CalculatorWindow::initUI()
 {
     // window title
-    setWindowTitle(tr("Calculator NodeEditor Example"));
+    setWindowTitle("Calculator NodeEditor Example");
 
     // central MDI area
     mdiArea = new QMdiArea(this);
@@ -35,7 +34,7 @@ void CalculatorWindow::initUI()
     // Connect MDI signals
     connect(mdiArea, &QMdiArea::subWindowActivated, this, [this](QMdiSubWindow* sub){
         lastActiveSubWindow = sub;
-        if (auto* editor = getCurrentNodeEditorWidget()){
+        if(auto* editor = getCurrentNodeEditorWidget()){
                 hookEditorSignals(editor);
                 connect(editor->getScene()->getHistory(), &QUndoStack::canUndoChanged, this, &CalculatorWindow::updateEditMenu);
                 connect(editor->getScene()->getHistory(), &QUndoStack::canRedoChanged, this, &CalculatorWindow::updateEditMenu);
@@ -62,72 +61,69 @@ void CalculatorWindow::initUI()
 
 void CalculatorWindow::createActions()
 {
-
     //NodeEditorWindow::createActions();   // IMPORTANT
 
     // --- now subclass actions ---
-    closeAct = new QAction(tr("Cl&ose"), this);
+    closeAct = new QAction("Close", this);
     connect(closeAct, &QAction::triggered, mdiArea, &QMdiArea::closeActiveSubWindow);
 
-    closeAllAct = new QAction(tr("Close &All"), this);
+    closeAllAct = new QAction("Close All", this);
     connect(closeAllAct, &QAction::triggered, mdiArea, &QMdiArea::closeAllSubWindows);
 
-    tileAct = new QAction(tr("&Tile"), this);
+    tileAct = new QAction("Tile", this);
     connect(tileAct, &QAction::triggered, mdiArea, &QMdiArea::tileSubWindows);
 
-    cascadeAct = new QAction(tr("&Cascade"), this);
+    cascadeAct = new QAction("Cascade", this);
     connect(cascadeAct, &QAction::triggered, mdiArea, &QMdiArea::cascadeSubWindows);
 
-    nextAct = new QAction(tr("Ne&xt"), this);
+    nextAct = new QAction("Next", this);
     nextAct->setShortcut(QKeySequence::NextChild);
     connect(nextAct, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
 
-    previousAct = new QAction(tr("Pre&vious"), this);
+    previousAct = new QAction("Previous", this);
     previousAct->setShortcut(QKeySequence::PreviousChild);
     connect(previousAct, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
 
     separatorAct = new QAction(this);
     separatorAct->setSeparator(true);
 
-    aboutAct = new QAction(tr("&About"), this);
+    aboutAct = new QAction("About", this);
     connect(aboutAct, &QAction::triggered, this, &CalculatorWindow::about);
-
-
 }
 
 void CalculatorWindow::createMenus()
 {
     // Window menu
-    windowMenu = menuBar()->addMenu(tr("&Window"));
+    windowMenu = menuBar()->addMenu("Window");
     updateWindowMenu();
     connect(windowMenu, &QMenu::aboutToShow, this, &CalculatorWindow::updateWindowMenu);
 
     menuBar()->addSeparator();
 
     // Help menu
-    helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu = menuBar()->addMenu("Help");
     helpMenu->addAction(aboutAct);
 }
 
 void CalculatorWindow::updateMenus()
 {
-    qDebug() << "update Menus";
+    qDebug() << "CalculatorWindow::updateMenu";
 
     QWidget *active = getCurrentNodeEditorWidget();
-    bool hasMdiChild = (active != nullptr);
+    bool hasMdiChild = active;
 
     // Enable/disable actions
-    if (newAct)        newAct->setEnabled(true);        // "New" is usually always enabled
-    if (closeAct)      closeAct->setEnabled(hasMdiChild);
-    if (closeAllAct)   closeAllAct->setEnabled(hasMdiChild);
-    if (tileAct)       tileAct->setEnabled(hasMdiChild);
-    if (cascadeAct)    cascadeAct->setEnabled(hasMdiChild);
-    if (nextAct)       nextAct->setEnabled(true);
-    if (previousAct)   previousAct->setEnabled(hasMdiChild);
+    if(newAct)        newAct->setEnabled(true);        // "New" is usually always enabled
+    if(closeAct)      closeAct->setEnabled(hasMdiChild);
+    if(closeAllAct)   closeAllAct->setEnabled(hasMdiChild);
+    if(tileAct)       tileAct->setEnabled(hasMdiChild);
+    if(cascadeAct)    cascadeAct->setEnabled(hasMdiChild);
+    if(nextAct)       nextAct->setEnabled(true);
+    if(previousAct)   previousAct->setEnabled(hasMdiChild);
     actSave->setEnabled(hasMdiChild);
     actSaveAs->setEnabled(hasMdiChild);
     qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
-    if (separatorAct)  separatorAct->setVisible(hasMdiChild);
+    if(separatorAct)  separatorAct->setVisible(hasMdiChild);
     updateEditMenu();
 }
 
@@ -138,25 +134,28 @@ void CalculatorWindow::createToolBars()
 
 void CalculatorWindow::createStatusBar()
 {
-    statusBar()->showMessage(tr("Ready"));
+    statusBar()->showMessage("Ready");
 }
 
 void CalculatorWindow::createNodesDock()
-
 {
+    QStringList keys = {"Input", "Output", "Add", "Subtract", "Multiply", "Divide"};
+    QStringList paths = {"://icons/in.png", "://icons/out.png", "://icons/plus.png", "://icons/substract.png", "://icons/multiply.png", "://icons/divide.png"};
+    QStringList classNames = {"InputNode", "OutputNode", "AddNode", "SubtractNode", "MultiplyNode", "DivideNode"};
+
     dragListWidget = new DragListWidget();
-    nodesDock = new QDockWidget(tr("Nodes"), this);
+    dragListWidget->addCustomItems(keys, paths, classNames);
+    nodesDock = new QDockWidget("Nodes", this);
     nodesDock->setWidget(dragListWidget);
     nodesDock->setFloating(false);
 
     addDockWidget(Qt::RightDockWidgetArea, nodesDock);
 }
 
-
 void CalculatorWindow::updateWindowMenu()
 {
     windowMenu->clear();
-    QAction* toolbarNodesAct = windowMenu->addAction(tr("Nodes Toolbar"));
+    QAction* toolbarNodesAct = windowMenu->addAction("Nodes Toolbar");
     toolbarNodesAct->setCheckable(true);
 
     // Initial checked state matches dock visibility
@@ -180,7 +179,7 @@ void CalculatorWindow::updateWindowMenu()
         QMdiSubWindow *sub = windows.at(i);
         QWidget *child = sub->widget();
         QString text = QString("%1 %2").arg(i + 1).arg(child ? child->windowTitle() : QString());
-        if (i < 9) text.prepend('&');
+        if(i < 9) text.prepend('&');
 
         QAction *action = windowMenu->addAction(text);
         action->setCheckable(true);
@@ -188,18 +187,17 @@ void CalculatorWindow::updateWindowMenu()
 
         // capture sub pointer in lambda
         connect(action, &QAction::triggered, this, [this, sub]() {
-            if (sub) mdiArea->setActiveSubWindow(sub);
+            if(sub) mdiArea->setActiveSubWindow(sub);
         });
     }
 }
 
-
 void CalculatorWindow::about()
 {
     QMessageBox::about(this,
-                       tr("About Calculator NodeEditor Example"),
-                       tr("The <b>Calculator NodeEditor</b> example demonstrates how to "
-                          "write multiple document interface applications using Qt and your NodeEditor."));
+                        "About Calculator NodeEditor Example",
+                        "The <b>Calculator NodeEditor</b> example demonstrates how to "
+                        "write multiple document interface applications using Qt and your NodeEditor.");
 
     const QList<QMdiSubWindow *> windows = mdiArea->subWindowList();
 
@@ -208,7 +206,7 @@ void CalculatorWindow::about()
         QWidget *child = window->widget();
 
         QString text = QString("%1 %2").arg(i + 1).arg(child->property("userFriendlyFilename").toString());
-        if (i < 9)
+        if(i < 9)
             text.prepend('&');  // add Alt shortcut accelerator
 
         QAction *action = windowMenu->addAction(text);
@@ -222,25 +220,25 @@ void CalculatorWindow::about()
 
 void CalculatorWindow::setActiveSubWindow(QWidget* window)
 {
-    if (!window) return;
+    if(!window) return;
     // If user passed an inner widget, find its subwindow
     QMdiSubWindow *sub = qobject_cast<QMdiSubWindow*>(window);
-    if (!sub) {
+    if(!sub) {
         // maybe they passed the child widget itself -> find containing subwindow
         sub = mdiArea->subWindowList().isEmpty() ? nullptr : mdiArea->subWindowList().first();
         // fallback: try to find the subwindow that contains the widget
         foreach (QMdiSubWindow* s, mdiArea->subWindowList()) {
-            if (s->widget() == window) { sub = s; break; }
+            if(s->widget() == window) { sub = s; break; }
         }
     }
-    if (sub) mdiArea->setActiveSubWindow(sub);
+    if(sub) mdiArea->setActiveSubWindow(sub);
 }
 
 void CalculatorWindow::closeEvent(QCloseEvent *event)
 {
     // try to close all subwindows
     mdiArea->closeAllSubWindows();
-    if (mdiArea->currentSubWindow()) {
+    if(mdiArea->currentSubWindow()) {
         // some subwindow rejected close
         event->ignore();
     } else {
@@ -269,8 +267,8 @@ QMdiSubWindow* CalculatorWindow::createMdiChild()
 NodeEditorWidget* CalculatorWindow::getCurrentNodeEditorWidget() const
 {
     QMdiSubWindow* sub = mdiArea->activeSubWindow();
-    if (!sub) sub = lastActiveSubWindow;  // fallback to last active
-    if (sub)
+    if(!sub) sub = lastActiveSubWindow;  // fallback to last active
+    if(sub)
         return dynamic_cast<NodeEditorWidget*>(sub->widget());
 
     return nullptr;
@@ -291,16 +289,16 @@ void CalculatorWindow::onFileNew()
 
 void CalculatorWindow::onFileOpen()
 {
-    QStringList fnames = QFileDialog::getOpenFileNames(this, tr("Open graph from file"));
+    QStringList fnames = QFileDialog::getOpenFileNames(this, "Open graph from file");
 
     for (const QString& fname : fnames)
     {
-        if (fname.isEmpty())
+        if(fname.isEmpty())
             continue;
 
         // Check if already open
         QMdiSubWindow* existing = findMdiChild(fname);
-        if (existing)
+        if(existing)
         {
             mdiArea->setActiveSubWindow(existing);
         }
@@ -310,9 +308,9 @@ void CalculatorWindow::onFileOpen()
             auto* subwnd = createMdiChild();
             CalculatorSubWindow* nodeEditor = qobject_cast<CalculatorSubWindow*>(subwnd->widget());
 
-            if (nodeEditor->fileLoad(fname))
+            if(nodeEditor->fileLoad(fname))
             {
-                statusBar()->showMessage(tr("File %1 loaded").arg(fname), 5000);
+                statusBar()->showMessage(QString("File %1 loaded").arg(fname), 5000);
                 nodeEditor->setTitle();
                 subwnd->show();
             }
@@ -330,13 +328,11 @@ QMdiSubWindow* CalculatorWindow::findMdiChild(const QString& filename)
     // Loop through all subwindows in the MDI area
     const QList<QMdiSubWindow*> subWindows = mdiArea->subWindowList();
 
-    for (QMdiSubWindow* window : subWindows)
+    for(QMdiSubWindow* window : subWindows)
     {
         QWidget* childWidget = window->widget();
         auto nodeEditor = qobject_cast<NodeEditorWidget*>(childWidget); // example type
-        if (nodeEditor && nodeEditor->getFilename() == filename)
-            return window;
-
+        if(nodeEditor && nodeEditor->getFilename() == filename) return window;
     }
 
     return nullptr; // None in Python
@@ -344,10 +340,10 @@ QMdiSubWindow* CalculatorWindow::findMdiChild(const QString& filename)
 
 void CalculatorWindow::updateEditMenu()
 {
-    qDebug() << "update Edit Menu";
+    qDebug() << "CalculatorWindow::updateEditMenu";
 
     NodeEditorWidget* active = getCurrentNodeEditorWidget();
-    bool hasMdiChild = (active != nullptr);
+    bool hasMdiChild = active;
 
     // Paste only depends on whether an editor exists
     actPaste->setEnabled(hasMdiChild);
@@ -366,7 +362,7 @@ void CalculatorWindow::updateEditMenu()
 
 void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)
 {
-    if (!editor) return;
+    if(!editor) return;
 
     NodeGraphicsScene* scene = getCurrentNodeEditorWidget()->getScene()->graphicsScene();
 
@@ -377,25 +373,29 @@ void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)
 
 void CalculatorWindow::onSubWndClose(NodeEditorWidget* widget, QCloseEvent* event)
 {
-    qDebug() << "LOOOLOLLOL";
-    if (!widget) {
+    if(!widget)
+    {
         event->accept();
         return;
     }
 
     // Activate the subwindow owning this widget
-    for (QMdiSubWindow* sub : mdiArea->subWindowList()) {
-        if (sub->widget() == widget) {
+    for(QMdiSubWindow* sub : mdiArea->subWindowList())
+    {
+        if(sub->widget() == widget)
+        {
             mdiArea->setActiveSubWindow(sub);
             break;
         }
     }
 
     // Ask user
-    if (maybeSave()) {
+    if(maybeSave())
+    {
         event->accept();
-    } else {
+    }
+    else
+    {
         event->ignore();
     }
 }
-

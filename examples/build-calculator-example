@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+BUILDDEPLOYMENT="-d /builds/targets/gen-2026-02-23T04:27:14.796443"
+
+BUILDWORLD="$BUILDDEPLOYMENT -t target"
+RUNTIMEWORLD="-d /builds/targets/gen-2026-02-23T05:13:48.130132 -t jigsaw_revamp"
+
+GCC_CORES=`nproc`
+mkdir -p build
+
+ulimit -c 0
+
+cd build ; bob-world $BUILDWORLD cmake .. -DBUILD_DOCS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=. && bob-world $BUILDWORLD make VERBOSE=1 && bob-world $BUILDWORLD make install |  grep -v Up-to-date: | grep -v Installing | grep -v configuration: | grep -v "Aborted"
+
+cd .. && bob-world $RUNTIMEWORLD build/bin/calculator $@ | grep -v "Aborted"

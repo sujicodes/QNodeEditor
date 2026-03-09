@@ -3,5 +3,4 @@
 
 constexpr const char* LISTBOX_MIMETYPE = "application/x-item";
 
-
 #endif // CALCULATORCONFIG_H

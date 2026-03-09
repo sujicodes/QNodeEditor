@@ -1,8 +1,10 @@
 #include "CalculatorSubWindow.h"
-#include "../../Scene.h"
-#include "CalculatorNodeBase.h"
+
+#include "Scene.h"
+#include "CalculatorNodeItemBase.h"
 #include "NodeEditorGraphicsView.h"
-#include "examples/calculator/CalculatorConfig.h"
+#include "CalculatorConfig.h"
+
 #include <QDebug>
 #include <QEvent>
 #include <QMimeData>
