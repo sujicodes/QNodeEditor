@@ -1,9 +1,9 @@
 #include "DirectEdgeGraphicsPathItem.h"
 
 
-void DirectEdgeGraphicsPathItem::updatePath() {
+QPainterPath DirectEdgeGraphicsPathItem::calcPath() const {
     QPainterPath p(posSource);
     p.lineTo(posDestination);
-    setPath(p);
+    return p;
 }
 

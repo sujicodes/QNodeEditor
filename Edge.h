@@ -1,31 +1,49 @@
 #ifndef EDGE_H
 #define EDGE_H
 
+#include "Serializable.h"
+
+
 class Scene;
 class Socket;
 class EdgeGraphicsPathItem;
+class QJsonObject;
 
-class Edge {
+class Edge : public Serializable {
 public:
     inline static const int EDGE_TYPE_DIRECT = 1;
     inline static const int EDGE_TYPE_BEZIER = 2;
 
-    Edge(Scene* scene, Socket* startSocket, Socket* endSocket, int type = EDGE_TYPE_DIRECT);
+    Edge(Scene* scene, Socket* startSocket = nullptr, Socket* endSocket = nullptr, int type = EDGE_TYPE_DIRECT);
     ~Edge();
 
     Scene* getScene() const { return scene; }
-    EdgeGraphicsPathItem* getGraphicsEdge() const { return grEdge; }
-    Socket* getEndSocket() { return endSocket; }
-    Socket* getStartSocket() { return startSocket; }
+    EdgeGraphicsPathItem* getEdgeGraphicsItem() const { return grEdge; }
+    void setEndSocket(Socket* socket);
+    Socket* getEndSocket() { return m_endSocket; }
+    void setStartSocket(Socket* socket);
+    Socket* getStartSocket() { return m_startSocket; }
+
+    Socket* getOtherSocket(Socket* known_socket) const {
+        return (known_socket == m_endSocket) ? m_startSocket : m_endSocket;
+    }
 
     void updatePositions();
     void removeFromSockets();
     void remove();
 
+    QJsonObject serialize() const override;
+    void deserialize(
+        const QJsonObject& data,
+        std::unordered_map<qint64, Serializable*>& hashmap,
+        bool restoreId = true
+
+        ) override;
+
 private:
-    Scene* scene;
-    Socket* startSocket;
-    Socket* endSocket;
+    Scene* scene = nullptr;
+    Socket* m_startSocket = nullptr;
+    Socket* m_endSocket = nullptr;
 
     EdgeGraphicsPathItem* grEdge;
 };

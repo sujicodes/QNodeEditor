@@ -8,6 +8,6 @@ public:
     DirectEdgeGraphicsPathItem(Edge* edge, QGraphicsItem* parent = nullptr)
         : EdgeGraphicsPathItem(edge, parent) {}
 
-    void updatePath() override;
+    QPainterPath calcPath() const override;
 };
 #endif // DIRECTEDGEGRAPHICSPATHITEM_H

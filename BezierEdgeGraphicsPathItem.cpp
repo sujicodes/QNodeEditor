@@ -4,7 +4,7 @@
 #include "Edge.h"
 #include "Socket.h" // Needed for enums like RIGHT_TOP, etc.
 
-void BezierEdgeGraphicsPathItem::updatePath() {
+QPainterPath BezierEdgeGraphicsPathItem::calcPath() const {
     const QPointF& s = posSource;
     const QPointF& d = posDestination;
 
@@ -30,5 +30,5 @@ void BezierEdgeGraphicsPathItem::updatePath() {
 
     QPainterPath path(s);
     path.cubicTo(s.x() + cpx_s, s.y() + cpy_s, d.x() + cpx_d, d.y() + cpy_d, d.x(), d.y());
-    setPath(path);
+    return path;
 }

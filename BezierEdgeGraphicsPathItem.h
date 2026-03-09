@@ -7,8 +7,8 @@ class BezierEdgeGraphicsPathItem : public EdgeGraphicsPathItem {
 public:
     BezierEdgeGraphicsPathItem(Edge* edge, QGraphicsItem* parent = nullptr)
         : EdgeGraphicsPathItem(edge, parent) {}
-
-    void updatePath() override;
+protected:
+   QPainterPath calcPath() const override;
 };
 
 #endif // BEZIEREDGEGRAPHICSPATHITEM_H

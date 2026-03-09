@@ -1,34 +1,319 @@
 #include "NodeEditorWindow.h"
+#include "NodeEditorWidget.h"
 #include "NodeEditorGraphicsView.h"
 #include "Scene.h"
-#include "Node.h"
-#include "Edge.h"
+#include "history.h"
+#include <QMenuBar>
+#include <QFileDialog>
+#include <QStatusBar>
+#include <QDebug>
+#include <QFile>
+#include <QGraphicsView>
+#include <QApplication>
+#include <QClipboard>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMessageBox>
+#include <QFileInfo>
+#include <QCloseEvent>
 
 NodeEditorWindow::NodeEditorWindow(QWidget *parent)
-    : QWidget(parent)
+    : QMainWindow(parent),
+      statusMousePos(nullptr)
 {
-    setGeometry(200, 200, 800, 600);
-    setWindowTitle("Node Editor");
+    initUI();
+}
 
-    layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    scene = new Scene(this);                  // Scene holds the logic
-    //graphicsScene = scene->graphicsScene();         // Access the QGraphicsScene
-    Node* node1 = new Node(scene, "My Awesome Node 1", {1, 2, 3}, {1});
-    Node* node2 = new Node(scene, "My Awesome Node 2", {1, 2, 3}, {1});
-    Node* node3 = new Node(scene, "My Awesome Node 3", {1, 2, 3}, {1});
+QAction* NodeEditorWindow::createAct(const QString &name,
+                                     const QString &shortcut,
+                                     const QString &tooltip,
+                                     const QObject* receiver,
+                                     const char* member)
+{
+    QAction *act = new QAction(name, this);
+    act->setShortcut(QKeySequence(shortcut));
+    act->setToolTip(tooltip);
+    connect(act, SIGNAL(triggered()), receiver, member);
+    return act;
+}
 
-    // Set positions
-    node1->setPos(-350, -250);
-    node2->setPos(-75, 0);
-    node3->setPos(200, -150);
+void NodeEditorWindow::initUI()
+{
+    
+    createActions();
+    createMenus();
+    // Node editor widget
+    nodeEditorWidget = new NodeEditorWidget(this);
+    nodeEditorWidget->getScene()->addHasBeenModifiedListener([this]() {
+        this->setTitle();
+    });
+    setCentralWidget(nodeEditorWidget);
 
-    // Create edges between sockets
-    Edge* edge1 = new Edge(scene, node1->outputs[0], node2->inputs[0], Edge::EDGE_TYPE_DIRECT);
-    Edge* edge2 = new Edge(scene, node2->outputs[0], node3->inputs[0], Edge::EDGE_TYPE_BEZIER);
-    // Create graphics view
-    view = new NodeEditorGraphicsView(scene->graphicsScene(), this);
-    layout->addWidget(view);
+    // Status bar
+    statusBar()->showMessage("");
+    statusMousePos = new QLabel("");
+    statusBar()->addPermanentWidget(statusMousePos);
 
-    layout->addWidget(view);
+    connect(nodeEditorWidget->getGraphicsView(), &NodeEditorGraphicsView::scenePosChanged, this, &NodeEditorWindow::onScenePosChanged);
+
+    //connect(nodePopup, &NodePopup::nodeChosen, this, &NodeEditorWindow::onNodeChosen);
+
+}
+
+void NodeEditorWindow::createActions()
+{
+    actNew = new QAction(tr("&New"), this);
+    actNew->setShortcut(QKeySequence::New);
+    actNew->setStatusTip(tr("Create new graph"));
+    connect(actNew, &QAction::triggered, this, &NodeEditorWindow::onFileNew);
+
+    actOpen = new QAction(tr("&Open"), this);
+    actOpen->setShortcut(QKeySequence::Open);
+    actOpen->setStatusTip(tr("Open file"));
+    connect(actOpen, &QAction::triggered, this, &NodeEditorWindow::onFileOpen);
+
+    actSave = new QAction(tr("&Save"), this);
+    actSave->setShortcut(QKeySequence::Save);
+    actSave->setStatusTip(tr("Save file"));
+    connect(actSave, &QAction::triggered, this, &NodeEditorWindow::onFileSave);
+
+    actSaveAs = new QAction(tr("Save &As..."), this);
+    actSaveAs->setShortcut(QKeySequence("Ctrl+Shift+S"));
+    actSaveAs->setStatusTip(tr("Save file as..."));
+    connect(actSaveAs, &QAction::triggered, this, &NodeEditorWindow::onFileSaveAs);
+
+    actExit = new QAction(tr("E&xit"), this);
+    actExit->setShortcut(QKeySequence::Quit);
+    actExit->setStatusTip(tr("Exit application"));
+    connect(actExit, &QAction::triggered, this, &NodeEditorWindow::close);
+
+    actUndo = new QAction(tr("&Undo"), this);
+    actUndo->setShortcut(QKeySequence::Undo);
+    actUndo->setStatusTip(tr("Undo last operation"));
+    connect(actUndo, &QAction::triggered, this, &NodeEditorWindow::onEditUndo);
+
+    actRedo = new QAction(tr("&Redo"), this);
+    actRedo->setShortcut(QKeySequence("Ctrl+Shift+Z"));
+    actRedo->setStatusTip(tr("Redo last operation"));
+    connect(actRedo, &QAction::triggered, this, &NodeEditorWindow::onEditRedo);
+
+    actCut = new QAction(tr("Cu&t"), this);
+    actCut->setShortcut(QKeySequence::Cut);
+    actCut->setStatusTip(tr("Cut to clipboard"));
+    connect(actCut, &QAction::triggered, this, &NodeEditorWindow::onEditCut);
+
+    actCopy = new QAction(tr("&Copy"), this);
+    actCopy->setShortcut(QKeySequence::Copy);
+    actCopy->setStatusTip(tr("Copy to clipboard"));
+    connect(actCopy, &QAction::triggered, this, &NodeEditorWindow::onEditCopy);
+
+    actPaste = new QAction(tr("&Paste"), this);
+    actPaste->setShortcut(QKeySequence::Paste);
+    actPaste->setStatusTip(tr("Paste from clipboard"));
+    connect(actPaste, &QAction::triggered, this, &NodeEditorWindow::onEditPaste);
+
+    actDelete = new QAction(tr("&Delete"), this);
+    actDelete->setShortcut(QKeySequence::Delete);
+    actDelete->setStatusTip(tr("Delete selected items"));
+    connect(actDelete, &QAction::triggered, this, &NodeEditorWindow::onEditDelete);
+}
+
+void NodeEditorWindow::createMenus()
+{
+    QMenuBar *menubar = menuBar();
+
+    QMenu *fileMenu = menubar->addMenu(tr("&File"));
+    fileMenu->addAction(actNew);
+    fileMenu->addSeparator();
+    fileMenu->addAction(actOpen);
+    fileMenu->addAction(actSave);
+    fileMenu->addAction(actSaveAs);
+    fileMenu->addSeparator();
+    fileMenu->addAction(actExit);
+
+    QMenu *editMenu = menubar->addMenu(tr("&Edit"));
+    editMenu->addAction(actUndo);
+    editMenu->addAction(actRedo);
+    editMenu->addSeparator();
+    editMenu->addAction(actCut);
+    editMenu->addAction(actCopy);
+    editMenu->addAction(actPaste);
+    editMenu->addSeparator();
+    editMenu->addAction(actDelete);
+}
+
+void NodeEditorWindow::onScenePosChanged(int x, int y)
+{
+    statusMousePos->setText(QString("Scene Pos: [%1, %2]").arg(x).arg(y));
+}
+
+NodeEditorWidget* NodeEditorWindow::getCurrentNodeEditorWidget() const{
+    qDebug() << "im base:";
+    return dynamic_cast<NodeEditorWidget*>(centralWidget());
+}
+
+void NodeEditorWindow::onFileNew()
+{
+    if (maybeSave()){
+        getCurrentNodeEditorWidget()->getScene()->clearScene();
+        setTitle();
+    }
+}
+
+void NodeEditorWindow::onFileOpen()
+{
+    if (maybeSave()){
+        QString fname = QFileDialog::getOpenFileName(this, "Open graph from file");
+        if (fname.isEmpty()) return;
+
+        QFile file(fname);
+        if (file.exists()) {
+            getCurrentNodeEditorWidget()->fileLoad(fname);
+            setTitle();
+        }
+    }
+}
+
+bool NodeEditorWindow::onFileSave()
+{
+    if (getCurrentNodeEditorWidget()->getFilename().isEmpty()) {
+        return onFileSaveAs();
+    }
+    getCurrentNodeEditorWidget()->fileSave();
+    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(getCurrentNodeEditorWidget()->getFilename()));
+    setTitle();
+    return true;
+}
+
+bool NodeEditorWindow::onFileSaveAs()
+{
+    QString fname = QFileDialog::getSaveFileName(this, "Save graph to file");
+    if (fname.isEmpty()) return false;
+    getCurrentNodeEditorWidget()->fileSave(fname);
+    statusBar()->showMessage(QString("Successfully saved %1🧩").arg(getCurrentNodeEditorWidget()->getFilename()));
+    return true;
+}
+
+void NodeEditorWindow::onEditUndo()
+
+{   NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr)
+        editor->getScene()->getHistory()->undo();
+}
+
+void NodeEditorWindow::onEditRedo()
+{
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr)
+        editor->getScene()->getHistory()->redo();
+}
+
+void NodeEditorWindow::onEditDelete()
+{
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        NodeEditorGraphicsView* view = editor->getGraphicsView();
+        if (view) {
+            view->deleteSelected();
+        }
+    }
+}
+
+void NodeEditorWindow::onEditCut()
+{
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        QJsonObject data = editor->getScene()->serializeSelected(true);
+        QJsonDocument doc(data);
+        QString strData = doc.toJson(QJsonDocument::Indented);
+        qWarning() << "copying: "<< strData;
+
+        QApplication::clipboard()->setText(strData);
+    }
+}
+
+void NodeEditorWindow::onEditCopy()
+{
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor != nullptr){
+        QJsonObject data = editor->getScene()->serializeSelected(false);
+        QJsonDocument doc(data);
+        QString strData = doc.toJson(QJsonDocument::Indented);
+
+        QApplication::clipboard()->setText(strData);
+    }
+}
+
+void NodeEditorWindow::onEditPaste()
+{
+    NodeEditorWidget* editor = getCurrentNodeEditorWidget();
+    if (editor == nullptr){
+        return;
+    }
+    QString rawData = QApplication::clipboard()->text();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(rawData.toUtf8(), &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Pasting invalid JSON data!" << parseError.errorString();
+        return;
+    }
+
+    if (!doc.isObject()) {
+        qWarning() << "JSON root is not an object!";
+        return;
+    }
+
+    QJsonObject data = doc.object();
+
+    if (!data.contains("nodes")) {
+        qWarning() << "JSON does not contain any nodes!";
+        return;
+    }
+
+    editor->getScene()->deserializeFromClipboard(data);
+}
+
+void NodeEditorWindow::setTitle()
+{
+    QString title = "Node Editor - ";
+    title += getCurrentNodeEditorWidget()->getUserFriendlyFilename();
+    setWindowTitle(title);
+
+}
+
+void NodeEditorWindow::closeEvent(QCloseEvent* event)
+{
+    if (maybeSave()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+bool NodeEditorWindow::isModified() const
+{
+    return getCurrentNodeEditorWidget()->isModified();
+}
+
+bool NodeEditorWindow::maybeSave()
+{
+    if (!isModified())
+        return true;
+
+    QMessageBox::StandardButton res = QMessageBox::warning(
+        this,
+        QString("Scene Modified"),
+        QString("The scene has been modified.\nDo you want to save your changes?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel
+        );
+
+    if (res == QMessageBox::Save) {
+        return onFileSave();
+    } else if (res == QMessageBox::Cancel) {
+        return false;
+    }
+
+    return true;
 }
