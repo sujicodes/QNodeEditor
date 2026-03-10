@@ -23,7 +23,6 @@ public:
              const QString& title = "Undefined Node",
              const QList<int>& in = {},
              const QList<int>& outs = {});
-    virtual ~NodeItem();
 
     void addInput(SocketItem* input);
     void addOutput(SocketItem* output);
@@ -61,7 +60,6 @@ public:
     void setTitle(const QString& title);
     QString title() const { return m_title; }
 
-    void initNode();
     virtual QWidget* setItemWidget() const;
     QWidget* getItemWidget() const {return itemWidget;}
 
@@ -132,17 +130,14 @@ private:
     bool m_isInvalid = false;
 
     float socketSpacing = 22.0f;
-    void ensureInitialized()
-    {
-        if (!m_initialized) {
-            m_initialized = true;
-            initNode();
-        }
-    }
 
     bool m_initialized = false;
     QList<int> in;
     QList<int> outs;
+
+    friend class NodeRegistry;
+    
+    void initNode();
 };
 
 #endif

@@ -52,7 +52,6 @@ class CalculatorWindow : public NodeEditorWindow
         QListWidget *listWidget = nullptr;
 
         // Actions
-        QAction *newAct = nullptr;
         QAction *closeAct = nullptr;
         QAction *closeAllAct = nullptr;
         QAction *tileAct = nullptr;

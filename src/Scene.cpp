@@ -128,7 +128,7 @@ void Scene::deserialize(
             if(nodeVal.isObject())
             {
                 QJsonObject nodeObj = nodeVal.toObject();
-                NodeItem* node = new NodeItem(this);       // Node constructor takes Scene*
+                NodeItem* node = createNode(nodeObj["type"].toString());       // Node constructor takes Scene*
                 node->deserialize(nodeObj, hashmap, restoreId);
             }
         }

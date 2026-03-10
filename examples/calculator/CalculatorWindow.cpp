@@ -112,8 +112,6 @@ void CalculatorWindow::updateMenus()
     QWidget *active = getCurrentNodeEditorWidget();
     bool hasMdiChild = active;
 
-    // Enable/disable actions
-    if(newAct)        newAct->setEnabled(true);        // "New" is usually always enabled
     if(closeAct)      closeAct->setEnabled(hasMdiChild);
     if(closeAllAct)   closeAllAct->setEnabled(hasMdiChild);
     if(tileAct)       tileAct->setEnabled(hasMdiChild);

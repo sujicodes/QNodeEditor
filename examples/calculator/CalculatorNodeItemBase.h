@@ -31,16 +31,16 @@ protected:
     void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,
                QWidget* widget = nullptr) override;
-    QVariant m_value;
+    float m_value;
 
-    virtual QVariant evalImplementation();
-    virtual QVariant evalOperation(const QVariant& v1, const QVariant& v2) { return 0; }
+    virtual float evalImplementation();
+    virtual float evalOperation(const float& v1, const float& v2) { return 0; }
 
 private:
     QString m_contentLabel;
     QString m_nodeType;
 
-    QImage m_icons;
+    QImage m_icons = QImage("C:\\Users\\sujan\\Downloads\\status_icons.png");
 };
 
 #endif

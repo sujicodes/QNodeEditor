@@ -29,9 +29,9 @@ class AddNode : public CalculatorNodeItemBase
 
     protected:
 
-        QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+        float evalOperation(const float& v1, const float& v2) override
         {
-            return v1.toInt() + v2.toInt();
+            return v1 + v2;
         }
 };
 
@@ -51,6 +51,7 @@ class SubtractNode : public CalculatorNodeItemBase
         explicit SubtractNode(Scene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
+            //initNode();
            
         }
 
@@ -59,9 +60,9 @@ class SubtractNode : public CalculatorNodeItemBase
 
     protected:
 
-        QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+        float evalOperation(const float& v1, const float& v2) override
         {
-            return v1.toInt() - v2.toInt();
+            return v1 - v2;
         }
 };
 
@@ -81,6 +82,9 @@ class MultiplyNode : public CalculatorNodeItemBase
         explicit MultiplyNode(Scene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
+
+            //initNode();
+
            
         }
 
@@ -89,9 +93,9 @@ class MultiplyNode : public CalculatorNodeItemBase
 
     protected:
 
-        QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+        float evalOperation(const float& v1, const float& v2) override
         {
-            return v1.toInt() * v2.toInt();
+            return v1 * v2;
         }
 };
 
@@ -111,6 +115,8 @@ class DivideNode : public CalculatorNodeItemBase
         explicit DivideNode(Scene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
+            //initNode();
+
            
         }
 
@@ -119,11 +125,11 @@ class DivideNode : public CalculatorNodeItemBase
 
     protected:
 
-        QVariant evalOperation(const QVariant& v1, const QVariant& v2) override
+        float evalOperation(const float& v1, const float& v2) override
         {
-            int b = v2.toInt();
-            if (b == 0) return QVariant();
-            return v1.toInt() / b;
+            int b = v2;
+            if (b == 0) return float();
+            return v1 / b;
         }
 };
 
@@ -147,17 +153,15 @@ class InputNode : public CalculatorNodeItemBase
 
         QString getContentLabel() const override { return ""; }
         QString nodeType() const override { return "InputNode"; }
-        void setValue(const int& val) {m_value = val;}
+        void setValue(const float& val) {m_value = val;}
         int getValue() const {
             bool ok = false;
-            int s_value =  m_value.toInt(&ok);
-            if (!ok && m_value != "")
-                throw std::invalid_argument("Invalid integer input");
+            int s_value =  m_value;
             return s_value;
 
         }
 
-        QVariant evalImplementation() override
+        float evalImplementation() override
         {
             bool ok = false;
             int s_value = getValue();
@@ -216,7 +220,7 @@ class OutputNode : public CalculatorNodeItemBase
         QString getContentLabel() const override { return ""; }
         QString nodeType() const override { return "OutputNode"; }
 
-        QVariant evalImplementation() override
+        float evalImplementation() override
         {
             NodeItem* inputNode = getInput(0);
 
@@ -225,7 +229,7 @@ class OutputNode : public CalculatorNodeItemBase
                 this->setToolTip("Input is not connected");
 
                 markInvalid(true);
-                return QVariant();
+                return float();
             }
 
             QVariant val = inputNode->eval();
@@ -235,7 +239,7 @@ class OutputNode : public CalculatorNodeItemBase
                 this->setToolTip("Input is NaN");
 
                 markInvalid(true);
-                return QVariant();
+                return float();
             }
 
             dynamic_cast<QLabel*>(this->getItemWidget())->setText(val.toString());
@@ -245,7 +249,7 @@ class OutputNode : public CalculatorNodeItemBase
 
             this->setToolTip("");
 
-            return val;
+            return val.toFloat();
         }
 };
 

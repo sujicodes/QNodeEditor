@@ -45,7 +45,9 @@ class NodeRegistry
                 return nullptr;
             }
 
-            return it->second(scene);
+            auto node = it->second(scene);
+            node->initNode();
+            return node;
         }
 
         QStringList allClassNamesSorted() const
@@ -70,7 +72,7 @@ class NodeRegistry
     inline bool _##NodeClass##_registered = []() {                  \
         NodeRegistry::instance().registerType(                      \
             TypeName,                                               \
-            [](Scene* scene) -> NodeItem* {                             \
+            [](Scene* scene) -> NodeItem* {                         \
                 NodeClass* node = new NodeClass(scene);             \
                 return node;                                        \
             });                                                     \

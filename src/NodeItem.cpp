@@ -15,29 +15,15 @@ NodeItem::NodeItem(Scene* scene,
                    const QString& title,
                    const QList<int>& in,
                    const QList<int>& outs)
-    : scene(scene), in(in), outs(outs)
+    : scene(scene), in(in), outs(outs), m_title(title)
 {
     setFlag(ItemIsSelectable);
     setFlag(ItemIsMovable);
-    setTitle(title);
+
 
     scene->graphicsScene()->addItem(this);
     scene->addNode(this);
 
-}
-
-NodeItem::~NodeItem()
-{
-    for (SocketItem* socket : inputs)
-        for (Edge* edge : socket->getConnectedEdges())
-            edge->remove();
-
-    for (SocketItem* socket : outputs)
-        for (Edge* edge : socket->getConnectedEdges())
-            edge->remove();
-
-    scene->graphicsScene()->removeItem(this);
-    scene->removeNode(this);
 }
 
 void NodeItem::addInput(SocketItem* input)
@@ -212,6 +198,7 @@ void NodeItem::initNode()
     titleItem->setFont(QFont("Ubuntu", 10));
     titleItem->setPos(titleHorizontalPadding, 0);
     titleItem->setTextWidth(width - 2 * titleHorizontalPadding);
+    titleItem->setPlainText(m_title);
 
     itemWidget = setItemWidget();
     graphicsProxyWidget = new QGraphicsProxyWidget(this);
@@ -300,7 +287,7 @@ void NodeItem::paint(QPainter* painter,
                      const QStyleOptionGraphicsItem*,
                      QWidget*)
 {
-    ensureInitialized();
+    //ensureInitialized();
     QPainterPath pathTitle;
     pathTitle.setFillRule(Qt::WindingFill);
     pathTitle.addRoundedRect(0, 0, width, titleHeight, edgeRoundness, edgeRoundness);
@@ -355,7 +342,12 @@ void NodeItem::remove()
     }
 
     qDebug() << " - remove grNode";
-    scene->graphicsScene()->removeItem(this);
+    if (this->scene)
+        this->scene->graphicsScene()->removeItem(this);
+        scene->removeNode(this);
+        scene = nullptr;
+
+
 
     qDebug() << " - remove node from the scene";
 

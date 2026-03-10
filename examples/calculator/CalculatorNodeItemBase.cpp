@@ -109,7 +109,7 @@ QVariant CalculatorNodeItemBase::eval()
     }
 }
 
-QVariant CalculatorNodeItemBase::evalImplementation()
+float CalculatorNodeItemBase::evalImplementation()
 {
     NodeItem* i1 = getInput(0);
     NodeItem* i2 = getInput(1);
@@ -119,11 +119,11 @@ QVariant CalculatorNodeItemBase::evalImplementation()
         markInvalid(true);
         markDescendantsDirty(true);
         setToolTip("Connect all inputs");
-        return QVariant();
+        return float();
     }
 
-    QVariant v1 = i1->eval();
-    QVariant v2 = i2->eval();
+    float v1 = i1->eval().toFloat();
+    float v2 = i2->eval().toFloat();
 
     m_value = evalOperation(v1, v2);
 

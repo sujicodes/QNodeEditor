@@ -11,7 +11,6 @@
 class NodeItem;
 class Edge;
 class Theme;
-class History;
 
 class Scene : public Serializable
 {
