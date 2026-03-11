@@ -1,7 +1,7 @@
 #include "EdgeGraphicsPathItem.h"
 #include "Edge.h"
 #include <QPainter>
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 
 EdgeGraphicsPathItem::EdgeGraphicsPathItem(Edge* edge, QGraphicsItem* parent)
     : QGraphicsPathItem(parent), edge(edge)
@@ -32,8 +32,8 @@ void EdgeGraphicsPathItem::onSelected()
 {
     // Python equivalent:
     //    self.edge.scene.grScene.itemSelected.emit()
-    if (edge && edge->getScene() && edge->getScene()->graphicsScene())
-        emit edge->getScene()->graphicsScene()->itemSelected();  // closest Qt equivalent
+    if (edge && edge->getScene())
+        emit edge->getScene()->itemSelected();  // closest Qt equivalent
 }
 
 void EdgeGraphicsPathItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)

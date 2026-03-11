@@ -1,7 +1,6 @@
 #include "CalculatorWindow.h"
 #include "CalculatorSubWindow.h"
-#include "NodeGraphicsScene.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 
 #include <QMenuBar>
 #include <QStatusBar>
@@ -362,9 +361,9 @@ void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)
 {
     if(!editor) return;
 
-    NodeGraphicsScene* scene = getCurrentNodeEditorWidget()->getScene()->graphicsScene();
+    NodeEditorGraphicsScene* scene = getCurrentNodeEditorWidget()->getScene();
 
-    connect(scene, &NodeGraphicsScene::selectionChanged,
+    connect(scene, &NodeEditorGraphicsScene::selectionChanged,
             this, &CalculatorWindow::updateMenus,
             Qt::UniqueConnection);
 }

@@ -19,7 +19,7 @@ class AddNode : public CalculatorNodeItemBase
         static inline const QString OpTitle = "Add";
         static inline const QString ContentLabel = "+";
 
-        explicit AddNode(Scene* scene)
+        explicit AddNode(NodeEditorGraphicsScene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
         }
@@ -48,10 +48,9 @@ class SubtractNode : public CalculatorNodeItemBase
         static inline const QString OpTitle = "Subtract";
         static inline const QString ContentLabel = "-";
 
-        explicit SubtractNode(Scene* scene)
+        explicit SubtractNode(NodeEditorGraphicsScene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
-            //initNode();
            
         }
 
@@ -79,12 +78,9 @@ class MultiplyNode : public CalculatorNodeItemBase
         static inline const QString OpTitle = "Multiply";
         static inline const QString ContentLabel = "*";
 
-        explicit MultiplyNode(Scene* scene)
+        explicit MultiplyNode(NodeEditorGraphicsScene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
-
-            //initNode();
-
            
         }
 
@@ -112,11 +108,9 @@ class DivideNode : public CalculatorNodeItemBase
         static inline const QString OpTitle = "Divide";
         static inline const QString ContentLabel = "/";
 
-        explicit DivideNode(Scene* scene)
+        explicit DivideNode(NodeEditorGraphicsScene* scene)
             : CalculatorNodeItemBase(scene, OpTitle)
         {
-            //initNode();
-
            
         }
 
@@ -145,8 +139,8 @@ class InputNode : public CalculatorNodeItemBase
         static inline const QString Icon = "icons/in.png";
         static inline const QString OpTitle = "Input";
 
-        explicit InputNode(Scene* scene)
-            : CalculatorNodeItemBase(scene, OpTitle, {}, {3})
+        explicit InputNode(NodeEditorGraphicsScene* scene)
+            : CalculatorNodeItemBase(scene, OpTitle, 0, 1)
         {
            
         }
@@ -211,8 +205,8 @@ class OutputNode : public CalculatorNodeItemBase
         static inline const QString Icon = "icons/out.png";
         static inline const QString OpTitle = "Output";
 
-        explicit OutputNode(Scene* scene)
-            : CalculatorNodeItemBase(scene, OpTitle, {1}, {})
+        explicit OutputNode(NodeEditorGraphicsScene* scene)
+            : CalculatorNodeItemBase(scene, OpTitle, 1, 0)
         {
            
         }

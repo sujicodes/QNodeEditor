@@ -14,7 +14,7 @@ class SocketItem : public QGraphicsItem, public Serializable
 {
 public:
     SocketItem(NodeItem* node, int type, int index = 0, int position = LEFT_TOP,
-               bool allowMultiEdges = false, bool isInput = false);
+               bool allowMultiEdges = false);
 
     SocketItem* getGraphicsSocket() const { return const_cast<SocketItem*>(this); }
 

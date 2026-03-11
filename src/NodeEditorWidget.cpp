@@ -1,6 +1,6 @@
 #include "NodeEditorWidget.h"
 #include "NodeEditorGraphicsView.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "NodeItem.h"
 #include "Edge.h"
 #include <qapplication.h>
@@ -15,9 +15,9 @@ NodeEditorWidget::NodeEditorWidget(QWidget *parent)
 
     layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    scene = new Scene();                  // Scene holds the logic
+    scene = new NodeEditorGraphicsScene();                  // Scene holds the logic
     // Create graphics view
-    view = new NodeEditorGraphicsView(scene->graphicsScene(), this);
+    view = new NodeEditorGraphicsView(scene, this);
     layout->addWidget(view);
 
     layout->addWidget(view);

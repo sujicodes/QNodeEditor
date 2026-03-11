@@ -2,11 +2,11 @@
 #include "Edge.h"
 #include "EdgeGraphicsPathItem.h"
 #include "NodeItem.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include <QDebug>
 #include <qjsonarray.h>
 
-History::History(Scene* scene)
+History::History(NodeEditorGraphicsScene* scene)
     : scene(scene), historyCurrentStep(-1), historyLimit(100) {}
 
 void History::undo()
@@ -74,7 +74,7 @@ QJsonObject History::createHistoryStamp(const QString& desc)
     QJsonArray edgeArray;
 
     // Iterate over selected items in the scene
-    for(QGraphicsItem* item : scene->graphicsScene()->selectedItems())
+    for(QGraphicsItem* item : scene->selectedItems())
     {
         // If item has a Node
         if(auto nodeItem = dynamic_cast<NodeItem*>(item))

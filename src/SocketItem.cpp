@@ -6,7 +6,7 @@
 #include <QDebug>
 
 SocketItem::SocketItem(NodeItem* node, int type, int index, int position,
-                       bool allowMultiEdges, bool isInput)
+                       bool allowMultiEdges)
     : node(node), socketType(type), index(index), position(position), allowedMultiEdges(allowMultiEdges)
 {
     QColor backgroundColor(Theme::instance().socketBackgroundColor);

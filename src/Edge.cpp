@@ -2,18 +2,18 @@
 #include "Edge.h"
 #include "DirectEdgeGraphicsPathItem.h"
 #include "BezierEdgeGraphicsPathItem.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "SocketItem.h"
 #include "NodeItem.h"
 
-Edge::Edge(Scene* scene, SocketItem* startSocket, SocketItem* endSocket, int type)
+Edge::Edge(NodeEditorGraphicsScene* scene, SocketItem* startSocket, SocketItem* endSocket)
     : scene(scene), m_startSocket(startSocket), m_endSocket(endSocket)
 
 {
     setStartSocket(startSocket);
     setEndSocket(endSocket);
     grEdge = new BezierEdgeGraphicsPathItem(this);
-    scene->graphicsScene()->addItem(grEdge);
+    scene->addItem(grEdge);
     scene->addEdge(this);
     if(startSocket)
     {
@@ -84,7 +84,7 @@ void Edge::remove()
     removeFromSockets();
     if(scene && grEdge)
     {
-        scene->graphicsScene()->removeItem(grEdge);
+        scene->removeItem(grEdge);
         grEdge = nullptr;
     }
 

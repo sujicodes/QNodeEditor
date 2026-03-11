@@ -1,7 +1,8 @@
 #include "NodeItem.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "SocketItem.h"
 #include "Edge.h"
+#include "Theme.h"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -11,18 +12,22 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 
-NodeItem::NodeItem(Scene* scene,
+NodeItem::NodeItem(NodeEditorGraphicsScene* scene,
                    const QString& title,
-                   const QList<int>& in,
-                   const QList<int>& outs)
-    : scene(scene), in(in), outs(outs), m_title(title)
+                   const int& in,
+                   const int& outs)
+    : scene(scene), m_inputSize(in), m_outputSize(outs), m_title(title)
 {
     setFlag(ItemIsSelectable);
     setFlag(ItemIsMovable);
 
 
-    scene->graphicsScene()->addItem(this);
+    scene->addItem(this);
     scene->addNode(this);
+
+    penSelected = QPen(QColor(Theme::instance().nodeSelectedColor));
+    brushBackground = QBrush(QColor(Theme::instance().nodeContentBackgroundColor));
+
 
 }
 
@@ -209,11 +214,11 @@ void NodeItem::initNode()
 
 
     int counter = 0;
-    for (int i : in)
+    for (int i = 0; i < m_inputSize; ++i)
         addInput(new SocketItem(this, SocketItem::INPUT, counter++, SocketItem::LEFT_CENTER));
 
     counter = 0;
-    for (int i : outs)
+    for (int i = 0; i < m_outputSize; ++i)
         addOutput(new SocketItem(this, SocketItem::OUTPUT, counter++, SocketItem::RIGHT_CENTER));
 
     updateSockets();
@@ -287,23 +292,71 @@ void NodeItem::paint(QPainter* painter,
                      const QStyleOptionGraphicsItem*,
                      QWidget*)
 {
-    //ensureInitialized();
+    // Title
     QPainterPath pathTitle;
     pathTitle.setFillRule(Qt::WindingFill);
-    pathTitle.addRoundedRect(0, 0, width, titleHeight, edgeRoundness, edgeRoundness);
+    pathTitle.addRoundedRect(
+        0,
+        0,
+        width,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathTitle.addRect(
+        0,
+        titleHeight - edgeRoundness,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathTitle.addRect(
+        width - edgeRoundness,
+        titleHeight - edgeRoundness,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QBrush(QColor("#FF313131")));
+    painter->setBrush(brushTitle);
     painter->drawPath(pathTitle.simplified());
 
+    // Content
     QPainterPath pathContent;
     pathContent.setFillRule(Qt::WindingFill);
-    pathContent.addRoundedRect(0, titleHeight, width, height - titleHeight, edgeRoundness, edgeRoundness);
-    painter->setBrush(QBrush(QColor("#E3212121")));
+    pathContent.addRoundedRect(
+        0,
+        titleHeight,
+        width,
+        height - titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathContent.addRect(
+        0,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    pathContent.addRect(
+        width - edgeRoundness,
+        titleHeight,
+        edgeRoundness,
+        edgeRoundness
+        );
+
+    painter->setBrush(brushBackground);
     painter->drawPath(pathContent.simplified());
 
+    // Outline
     QPainterPath pathOutline;
     pathOutline.addRoundedRect(0, 0, width, height, edgeRoundness, edgeRoundness);
-    painter->setPen(QPen(QColor("#7F000000")));
+
+    painter->setPen(isSelected() ? penSelected : penDefault);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(pathOutline.simplified());
 }
@@ -343,7 +396,7 @@ void NodeItem::remove()
 
     qDebug() << " - remove grNode";
     if (this->scene)
-        this->scene->graphicsScene()->removeItem(this);
+        this->scene->removeItem(this);
         scene->removeNode(this);
         scene = nullptr;
 
@@ -426,14 +479,14 @@ void NodeItem::deserialize(
     for(SocketItem* socket : inputs)
     {
         if(socket)
-            scene->graphicsScene()->removeItem(socket);
+            scene->removeItem(socket);
         delete socket;
     }
 
     for(SocketItem* socket : outputs)
     {
         if(socket)
-            scene->graphicsScene()->removeItem(socket);
+            scene->removeItem(socket);
         delete socket;
     }
 

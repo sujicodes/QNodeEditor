@@ -12,17 +12,17 @@
 
 #include "Serializable.h"
 
-class Scene;
+class NodeEditorGraphicsScene;
 class SocketItem;
 class Edge;
 
 class NodeItem : public QGraphicsItem, public Serializable
 {
 public:
-    NodeItem(Scene* scene,
+    NodeItem(NodeEditorGraphicsScene* scene,
              const QString& title = "Undefined Node",
-             const QList<int>& in = {},
-             const QList<int>& outs = {});
+             const int& in = 0,
+             const int& outs = 0);
 
     void addInput(SocketItem* input);
     void addOutput(SocketItem* output);
@@ -102,7 +102,7 @@ public:
     void remove();
 
 private:
-    Scene* scene;
+    NodeEditorGraphicsScene* scene;
     QString m_title;
 
     QList<SocketItem*> inputs;
@@ -132,8 +132,14 @@ private:
     float socketSpacing = 22.0f;
 
     bool m_initialized = false;
-    QList<int> in;
-    QList<int> outs;
+    int m_inputSize;
+    int m_outputSize;
+
+    QPen penDefault = QPen(QColor("#7F000000"));
+    QPen penSelected;
+
+    QBrush brushTitle = QBrush(QColor("#FF313131"));
+    QBrush brushBackground;
 
     friend class NodeRegistry;
     

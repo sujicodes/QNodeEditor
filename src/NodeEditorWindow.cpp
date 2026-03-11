@@ -1,7 +1,7 @@
 #include "NodeEditorWindow.h"
 #include "NodeEditorWidget.h"
 #include "NodeEditorGraphicsView.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "History.h"
 #include <QMenuBar>
 #include <QFileDialog>

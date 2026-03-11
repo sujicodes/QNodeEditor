@@ -16,6 +16,7 @@ class Theme
         bool gridDisplayOn;
         QColor socketBackgroundColor;
         QColor socketOutlineColor;
+        QColor nodeContentBackgroundColor;
 
         // Load a theme from file and override the singleton instance
         void loadFromJson(const QString &filePath)
@@ -42,6 +43,7 @@ class Theme
             instance().socketBackgroundColor = QColor(obj.value("socketBackgroundColor").toString());
             instance().socketOutlineColor = QColor(obj.value("socketOutlineColor").toString());
             instance().gridDisplayOn = obj.value("gridDisplayOn").toBool();
+            instance().nodeContentBackgroundColor = QColor(obj.value("nodeContentBackgroundColor").toString());
 
             qDebug() << "Theme loaded from:" << filePath;
         }
@@ -83,6 +85,7 @@ class Theme
             socketBackgroundColor = QColor(obj.value("socketBackgroundColor").toString());
             socketOutlineColor = QColor(obj.value("socketOutlineColor").toString());
             gridDisplayOn = obj.value("gridDisplayOn").toBool();
+            nodeContentBackgroundColor = QColor(obj.value("nodeContentBackgroundColor").toString());
 
             qDebug() << "Theme loaded from :" << filePath;
         }

@@ -14,7 +14,7 @@
 #include <QSet>
 #include <QMap>
 
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "SocketItem.h"
 #include "Edge.h"
 #include "NodeItem.h"
@@ -30,7 +30,7 @@ class SelectionChangedCommand : public QUndoCommand
 {
     public:
 
-        SelectionChangedCommand(Scene* scene,
+        SelectionChangedCommand(NodeEditorGraphicsScene* scene,
                                 const QSet<qint64>& oldNodeIds,
                                 const QSet<qint64>& oldEdgeIds,
                                 const QSet<qint64>& newNodeIds,
@@ -73,7 +73,7 @@ class SelectionChangedCommand : public QUndoCommand
             gscene->blockSignals(false);
         }
 
-        Scene* m_scene = nullptr;
+        NodeEditorGraphicsScene* m_scene = nullptr;
         QSet<qint64> m_oldNodeIds;
         QSet<qint64> m_oldEdgeIds;
         QSet<qint64> m_newNodeIds;
@@ -84,7 +84,7 @@ class CreateNodeCommand : public QUndoCommand
 {
     public:
 
-        CreateNodeCommand(Scene* scene,
+        CreateNodeCommand(NodeEditorGraphicsScene* scene,
                         const QString& nodeType,
                         const QPointF& position,
                         QUndoCommand* parent = nullptr)
@@ -137,7 +137,7 @@ class CreateNodeCommand : public QUndoCommand
 
     private:
 
-        Scene* m_scene = nullptr;
+        NodeEditorGraphicsScene* m_scene = nullptr;
         QString m_nodeType;
         QPointF m_position;
 
@@ -153,7 +153,7 @@ class CreateEdgeCommand : public QUndoCommand
 {
     public:
 
-        CreateEdgeCommand(Scene* scene,
+        CreateEdgeCommand(NodeEditorGraphicsScene* scene,
                         Edge* dragEdge,
                         SocketItem* start,
                         SocketItem* end,
@@ -262,7 +262,7 @@ class CreateEdgeCommand : public QUndoCommand
         }
 
     private:
-        Scene* m_scene;
+        NodeEditorGraphicsScene* m_scene;
         Edge* m_edge = nullptr;
         SocketItem* m_start = nullptr;
         SocketItem* m_end = nullptr;
@@ -282,7 +282,7 @@ class PasteCommand : public QUndoCommand
 {
     public:
 
-        PasteCommand(Scene* scene, const QJsonObject& data, QUndoCommand* parent = nullptr)
+        PasteCommand(NodeEditorGraphicsScene* scene, const QJsonObject& data, QUndoCommand* parent = nullptr)
             : QUndoCommand("Paste elements in scene", parent),
             scene(scene), data(data), firstExecution(true) {}
 
@@ -311,7 +311,7 @@ class PasteCommand : public QUndoCommand
             if(firstExecution)
             {
                 NodeEditorGraphicsView* view =
-                    dynamic_cast<NodeEditorGraphicsView*>(scene->graphicsScene()->views().first());
+                    dynamic_cast<NodeEditorGraphicsView*>(scene->views().first());
                 pasteCenter = view->getLastSceneMousePosition();
                 computeOriginalCenter();
             }
@@ -374,7 +374,7 @@ class PasteCommand : public QUndoCommand
 
     private:
 
-        Scene* scene;
+        NodeEditorGraphicsScene* scene;
         QJsonObject data;
 
         std::vector<qint64> pastedNodeIds;
@@ -413,7 +413,7 @@ class CutCommand : public QUndoCommand
 {
     public:
 
-        CutCommand(Scene* scene, const QJsonObject& cutData,
+        CutCommand(NodeEditorGraphicsScene* scene, const QJsonObject& cutData,
                 const QList<QGraphicsItem*>& selected,
                 QUndoCommand* parent = nullptr)
             : QUndoCommand("Cut elements from scene", parent),
@@ -480,7 +480,7 @@ class CutCommand : public QUndoCommand
 
     private:
 
-        Scene* scene;
+        NodeEditorGraphicsScene* scene;
         QJsonObject data;
         QList<NodeItem*> m_nodes;
         QList<Edge*> m_edges;
@@ -493,7 +493,7 @@ class MoveNodeCommand : public QUndoCommand
 {
     public:
 
-        MoveNodeCommand(Scene* scene,
+        MoveNodeCommand(NodeEditorGraphicsScene* scene,
                         const QMap<qint64, QPair<QPointF, QPointF>> moveData,
                         QUndoCommand* parent = nullptr)
             : QUndoCommand("Move Nodes", parent),
@@ -528,7 +528,7 @@ class MoveNodeCommand : public QUndoCommand
 
     private:
 
-        Scene* m_scene = nullptr;
+        NodeEditorGraphicsScene* m_scene = nullptr;
         QMap<qint64, QPair<QPointF, QPointF>> m_moveData;
 };
 
@@ -539,7 +539,7 @@ class DeleteSelectedCommand : public QUndoCommand
 {
     public:
 
-        DeleteSelectedCommand(Scene* scene,
+        DeleteSelectedCommand(NodeEditorGraphicsScene* scene,
                             const QList<QGraphicsItem*>& selected,
                             QUndoCommand* parent = nullptr)
             : QUndoCommand("Delete Selected", parent),
@@ -622,7 +622,7 @@ class DeleteSelectedCommand : public QUndoCommand
 
     private:
 
-        Scene* m_scene;
+        NodeEditorGraphicsScene* m_scene;
         QList<qint64> m_nodeIds;
         QList<qint64> m_edgeIds;
         QList<QJsonObject> m_serializedNodes;

@@ -8,7 +8,7 @@
 
 class NodeGraphicsScene;
 class NodeEditorGraphicsView;
-class Scene;
+class NodeEditorGraphicsScene;
 class NodeItem;
 
 class NodeEditorWidget : public QWidget
@@ -18,7 +18,7 @@ class NodeEditorWidget : public QWidget
     public:
 
         NodeEditorWidget(QWidget *parent = nullptr);
-        Scene* getScene() { return scene; }
+        NodeEditorGraphicsScene* getScene() { return scene; }
         NodeEditorGraphicsView* getGraphicsView() { return view; }
         bool isModified() const;
         bool isFilenameSet() const;
@@ -35,8 +35,8 @@ class NodeEditorWidget : public QWidget
     private:
 
         QVBoxLayout *layout;
-        NodeEditorGraphicsView *view;
-        Scene *scene;
+        NodeEditorGraphicsView* view;
+        NodeEditorGraphicsScene* scene;
         QString filename;
 };
 

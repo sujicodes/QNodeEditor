@@ -1,6 +1,6 @@
 #include "CalculatorSubWindow.h"
 
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "CalculatorNodeItemBase.h"
 #include "NodeEditorGraphicsView.h"
 #include "CalculatorConfig.h"

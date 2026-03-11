@@ -7,9 +7,8 @@
 
 #include "NodeItem.h"
 #include "NodeEditorGraphicsView.h"
-#include "NodeGraphicsScene.h"
 #include "NodeSelectorWidget.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 #include "SocketItem.h"
 #include "Edge.h"
 #include "EdgeGraphicsPathItem.h"
@@ -34,7 +33,7 @@ QString debug_modifiers(QInputEvent* event)
     return out;
 }
 
-NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent)
+NodeEditorGraphicsView::NodeEditorGraphicsView(NodeEditorGraphicsScene* grScene, QWidget* parent)
     : QGraphicsView(parent), m_grScene(grScene), mode(MODE_NOOP),
       zoomInFactor(1.25), zoomStep(1), zoom(10),
       zoomClamp(true), zoomRange({0, 10})
@@ -44,11 +43,10 @@ NodeEditorGraphicsView::NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidg
     connect(m_grScene, &QGraphicsScene::selectionChanged,
             this, &NodeEditorGraphicsView::onSelectionChanged);
     
-    connect(m_grScene->getScene()->getHistory(), &QUndoStack::indexChanged, this, [this]() {
+    connect(m_grScene->getHistory(), &QUndoStack::indexChanged, this, [this]() {
         // Resync to actual selection
         previousNodeIds.clear();
         previousEdgeIds.clear();
-
         for (auto* item : m_grScene->selectedItems()) {
             if (auto* nodeItem = dynamic_cast<NodeItem*>(item))
                 previousNodeIds.insert(nodeItem->getId());
@@ -75,48 +73,6 @@ void NodeEditorGraphicsView::initUI() {
 
 void NodeEditorGraphicsView::keyPressEvent(QKeyEvent* event)
 {
-    /*
-    if (event->key() == Qt::Key_Delete) {
-        deleteSelected();
-    }
-    else if ((event->key() == Qt::Key_S) && (event->modifiers() & Qt::ControlModifier)) {
-        if (m_grScene && m_grScene->getScene()) {
-            m_grScene->getScene()->saveToFile("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\graph.json.txt");
-        }
-        event->accept();
-    }
-    else if ((event->key() == Qt::Key_L) && (event->modifiers() & Qt::ControlModifier)) {
-        if (m_grScene && m_grScene->getScene()) {
-            m_grScene->getScene()->loadFromFile("C:\\Users\\sujan\\Documents\\GitHub\\QNodeEditor\\graph.json.txt");
-        }
-        event->accept();
-    }
-    else if (event->key() == Qt::Key_Z &&
-         (event->modifiers() & Qt::ControlModifier) &&
-         !(event->modifiers() & Qt::ShiftModifier)) {
-
-        m_grScene->getScene()->getHistory()->undo();
-        event->accept();
-    }
-    else if (event->key() == Qt::Key_Z &&
-         (event->modifiers() & Qt::ControlModifier) &&
-         (event->modifiers() & Qt::ShiftModifier)) {
-
-        m_grScene->getScene()->getHistory()->redo();
-        event->accept();
-    }
-    else if (event->key() == Qt::Key_H) {
-        qDebug() << "HISTORY: len(" << m_grScene->getScene()->getHistory()->getStack().size()
-                 << ") -- current_step" << m_grScene->getScene()->getHistory()->getCurrentStep();
-        int ix = 0;
-        for (const QJsonObject &item : m_grScene->getScene()->getHistory()->getStack()) {
-            qDebug() << "#" << ix << "--" << item["desc"].toString();
-            ix++;
-        }
-        event->accept();
-    }
-    else {
-    */
     if (event->key() == Qt::Key_1) {
         // Show popup at mouse position
         QPoint pos = QCursor::pos();
@@ -261,10 +217,10 @@ void NodeEditorGraphicsView::leftMouseButtonRelease(QMouseEvent* event) {
     }
 
     if (anyMoved)
-        m_grScene->getScene()->getHistory()->push(new MoveNodeCommand(m_grScene->getScene(), m_moveData));
-        m_grScene->getScene()->setHasBeenModified(true);
+        m_grScene->getHistory()->push(new MoveNodeCommand(m_grScene, m_moveData));
+        m_grScene->setHasBeenModified(true);
         m_grScene->lastSelectedItems = m_grScene->selectedItems();
-        m_grScene->getScene()->resetLastSelectedStates();
+        m_grScene->resetLastSelectedStates();
 
 
     m_draggedNodes.clear();
@@ -297,7 +253,7 @@ void NodeEditorGraphicsView::edgeDragStart(SocketItem* socketItem) {
  
     dragStartSocket = socketItem;
 
-    dragEdge = new Edge(m_grScene->getScene(), socketItem, nullptr, Edge::EDGE_TYPE_BEZIER);
+    dragEdge = new Edge(m_grScene, socketItem, nullptr);
 }
 
 bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
@@ -323,8 +279,8 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
             Edge* prevEdge = previousEdge; // saved in dragStart
 
             // Push proper undo command that owns this edge + conflicts
-            m_grScene->getScene()->getHistory()->push(
-                new CreateEdgeCommand(m_grScene->getScene(),
+            m_grScene->getHistory()->push(
+                new CreateEdgeCommand(m_grScene,
                                       dragEdge,
                                       dragStartSocket,
                                       endSocketItem,
@@ -333,7 +289,7 @@ bool NodeEditorGraphicsView::edgeDragEnd(QGraphicsItem* item) {
             );
 
             dragEdge = nullptr; // ownership now inside command
-            m_grScene->getScene()->setHasBeenModified(true);
+            m_grScene->setHasBeenModified(true);
             return true;
         }
     }
@@ -410,10 +366,10 @@ void NodeEditorGraphicsView::deleteSelected() {
     QList<QGraphicsItem*> selected = m_grScene->selectedItems();
     if (selected.isEmpty()) return;
 
-    m_grScene->getScene()->getHistory()->push(
-        new DeleteSelectedCommand(m_grScene->getScene(), selected)
+    m_grScene->getHistory()->push(
+        new DeleteSelectedCommand(m_grScene, selected)
     );
-    m_grScene->getScene()->setHasBeenModified(true);
+    m_grScene->setHasBeenModified(true);
 }
 
 QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {
@@ -429,7 +385,7 @@ QList<qint64> captureSelectionIDs(const QList<QGraphicsItem*>& items) {
 
 void NodeEditorGraphicsView::onSelectionChanged()
 {
-    Scene* scene = m_grScene->getScene();
+    NodeEditorGraphicsScene* scene = m_grScene;
     QList<QGraphicsItem*> newSelection = m_grScene->selectedItems();
 
     // Gather IDs

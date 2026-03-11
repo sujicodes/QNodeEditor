@@ -9,10 +9,10 @@ class CalculatorNodeItemBase : public NodeItem
 {
 public:
     CalculatorNodeItemBase(
-        Scene* scene,
+        NodeEditorGraphicsScene* scene,
         const QString& opTitle,
-        const QList<int>& inputs = {2, 2},
-        const QList<int>& outputs = {1}
+        const int& inputs = 2,
+        const int& outputs = 1
     );
 
     QWidget* setItemWidget() const override;
@@ -22,7 +22,7 @@ public:
     QJsonObject serialize() const override;
 
     virtual QString getContentLabel() const { return m_contentLabel; }
-    virtual QString nodeType() const { return m_nodeType; }
+    QString nodeType() const override { return m_nodeType; }
 
     void setContentLabel(const QString& label) { m_contentLabel = label; }
     void setNodeType(const QString& type) { m_nodeType = type; }

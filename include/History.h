@@ -1,6 +1,7 @@
 #ifndef HISTORY_H
 #define HISTORY_H
 
+#include "NodeEditorGraphicsScene.h"
 #include <QString>
 #include <QVector>
 #include <qjsonobject.h>
@@ -11,7 +12,7 @@ class History
 {
     public:
 
-        History(Scene* scene);
+        History(NodeEditorGraphicsScene* scene);
         void undo();
         void redo();
         void restoreHistory();
@@ -24,7 +25,7 @@ class History
         QJsonObject createHistoryStamp(const QString& desc);
         void restoreHistoryStamp(const QJsonObject& historyStamp);
 
-        Scene* scene;
+        NodeEditorGraphicsScene* scene;
         QVector<QJsonObject> historyStack;
         int historyCurrentStep;
         int historyLimit;

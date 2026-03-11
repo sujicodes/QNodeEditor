@@ -10,7 +10,7 @@
 
 class Edge;
 class SocketItem;
-class NodeGraphicsScene;
+class NodeEditorGraphicsScene;
 class NodeItem;
 
 class NodeEditorGraphicsView : public QGraphicsView
@@ -19,7 +19,7 @@ class NodeEditorGraphicsView : public QGraphicsView
 
     public:
 
-        NodeEditorGraphicsView(NodeGraphicsScene* grScene, QWidget* parent = nullptr);
+        NodeEditorGraphicsView(NodeEditorGraphicsScene* grScene, QWidget* parent = nullptr);
         void deleteSelected();
         QPointF getLastSceneMousePosition() const { return lastSceneMousePosition;}
         void addDragEnterListener(std::function<void(QDragEnterEvent*)> callback);
@@ -63,7 +63,7 @@ class NodeEditorGraphicsView : public QGraphicsView
         static const int MODE_EDGE_DRAG = 2;
         static const int EDGE_DRAG_START_THRESHOLD = 10;
 
-        NodeGraphicsScene* m_grScene;
+        NodeEditorGraphicsScene* m_grScene;
 
         int mode = MODE_NOOP;
         float zoomInFactor;

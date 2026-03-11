@@ -14,10 +14,10 @@
 #include <QDebug>
 
 CalculatorNodeItemBase::CalculatorNodeItemBase(
-    Scene* scene,
+    NodeEditorGraphicsScene* scene,
     const QString& opTitle,
-    const QList<int>& inputs,
-    const QList<int>& outputs
+    const int& inputs,
+    const int& outputs
 )
     : NodeItem(scene, opTitle, inputs, outputs)
 {

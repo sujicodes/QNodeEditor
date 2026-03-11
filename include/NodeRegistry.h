@@ -7,13 +7,13 @@
 #include <iostream> 
 #include <unordered_map>
 #include "NodeItem.h"
-#include "Scene.h"
+#include "NodeEditorGraphicsScene.h"
 
 class NodeRegistry
 {
     public:
 
-        using NodeFactory = std::function<NodeItem*(Scene*)>;
+        using NodeFactory = std::function<NodeItem*(NodeEditorGraphicsScene*)>;
 
         static NodeRegistry& instance()
         {
@@ -35,7 +35,7 @@ class NodeRegistry
             qDebug() << "Factories after registration : " << allClassNamesSorted();
         }
 
-        NodeItem* createNode(const QString& className, Scene* scene) const
+        NodeItem* createNode(const QString& className, NodeEditorGraphicsScene* scene) const
         {
             qDebug() << "NodeRegistry createNode, factories classes : " << allClassNamesSorted();
             auto it = factories.find(className);
@@ -72,7 +72,7 @@ class NodeRegistry
     inline bool _##NodeClass##_registered = []() {                  \
         NodeRegistry::instance().registerType(                      \
             TypeName,                                               \
-            [](Scene* scene) -> NodeItem* {                         \
+            [](NodeEditorGraphicsScene* scene) -> NodeItem* {                         \
                 NodeClass* node = new NodeClass(scene);             \
                 return node;                                        \
             });                                                     \

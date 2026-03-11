@@ -1,6 +1,7 @@
 #ifndef EDGE_H
 #define EDGE_H
 
+#include "NodeEditorGraphicsScene.h"
 #include "Serializable.h"
 
 class Scene;
@@ -12,13 +13,10 @@ class Edge : public Serializable
 {
     public:
 
-        inline static const int EDGE_TYPE_DIRECT = 1;
-        inline static const int EDGE_TYPE_BEZIER = 2;
-
-        Edge(Scene* scene, SocketItem* startSocket = nullptr, SocketItem* endSocket = nullptr, int type = EDGE_TYPE_DIRECT);
+        Edge(NodeEditorGraphicsScene* scene, SocketItem* startSocket = nullptr, SocketItem* endSocket = nullptr);
         ~Edge();
 
-        Scene* getScene() const { return scene; }
+        NodeEditorGraphicsScene* getScene() const { return scene; }
         EdgeGraphicsPathItem* getEdgeGraphicsItem() const { return grEdge; }
         void setEndSocket(SocketItem* socket);
         SocketItem* getEndSocket() { return m_endSocket; }
@@ -43,10 +41,9 @@ class Edge : public Serializable
 
     private:
 
-        Scene* scene = nullptr;
+        NodeEditorGraphicsScene* scene = nullptr;
         SocketItem* m_startSocket = nullptr;
         SocketItem* m_endSocket = nullptr;
-
         EdgeGraphicsPathItem* grEdge;
 };
 
