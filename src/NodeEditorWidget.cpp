@@ -13,29 +13,36 @@ NodeEditorWidget::NodeEditorWidget(QWidget *parent)
     setGeometry(200, 200, 800, 600);
     setWindowTitle("Node Editor");
 
-    layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    scene = new NodeEditorGraphicsScene();                  // Scene holds the logic
+    m_layout = new QVBoxLayout(this);
+    m_layout->setContentsMargins(0, 0, 0, 0);
+    m_scene = new NodeEditorGraphicsScene();                  // m_scene holds the logic
     // Create graphics view
-    view = new NodeEditorGraphicsView(scene, this);
-    layout->addWidget(view);
+    m_view = new NodeEditorGraphicsView(m_scene, this);
+    m_layout->addWidget(m_view);
+}
 
-    layout->addWidget(view);
+void NodeEditorWidget::setGraphicsView(NodeEditorGraphicsView* view)
+{
+    if (m_view) {
+        m_layout->replaceWidget(m_view, view);
+        delete m_view; // <-- delete the old view, don't leave it alive
+    }
+    m_view = view;
 }
 
 bool NodeEditorWidget::isModified() const
 {
-    return scene && scene->hasBeenModified();
+    return m_scene && m_scene->hasBeenModified();
 }
 
 bool NodeEditorWidget::isFilenameSet() const
 {
-    return !filename.isEmpty();
+    return !m_filename.isEmpty();
 }
 
 QString NodeEditorWidget::getFilename() const
 {
-    return filename;
+    return m_filename;
 }
 
 QString NodeEditorWidget::getUserFriendlyFilename() const
@@ -44,7 +51,7 @@ QString NodeEditorWidget::getUserFriendlyFilename() const
 
     if(isFilenameSet())
     {
-        QFileInfo fi(filename);
+        QFileInfo fi(m_filename);
         name = fi.fileName();
     }
     else
@@ -59,20 +66,20 @@ QString NodeEditorWidget::getUserFriendlyFilename() const
 
 void NodeEditorWidget::fileNew()
 {
-    if(scene)
+    if(m_scene)
     {
-        scene->clearScene();
-        scene->getHistory()->clear();
+        m_scene->clearScene();
+        m_scene->getHistory()->clear();
     }
 
-    filename.clear();
+    m_filename.clear();
 }
 
 bool NodeEditorWidget::fileLoad(const QString& name)
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QString errorMsg;
-    bool ok = scene && scene->loadFromFile(name, &errorMsg);
+    bool ok = m_scene && m_scene->loadFromFile(name, &errorMsg);
 
     QApplication::restoreOverrideCursor();
 
@@ -80,27 +87,27 @@ bool NodeEditorWidget::fileLoad(const QString& name)
     {
         QMessageBox::warning(
             this,
-            QString("Error loading %1").arg(QFileInfo(filename).fileName()),
+            QString("Error loading %1").arg(QFileInfo(m_filename).fileName()),
             errorMsg.isEmpty() ? "Unknown error" : errorMsg
             );
         return false;
     }
 
-    scene->getHistory()->clear();
-    filename = name;
+    m_scene->getHistory()->clear();
+    m_filename = name;
     return true;
 }
 
 bool NodeEditorWidget::fileSave(const QString& name)
 {
-    // When a non-empty filename is passed, update stored filename
+    // When a non-empty m_filename is passed, update stored m_filename
     if(!name.isEmpty())
     {
-        this->filename = name;
+        this->m_filename = name;
     }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    scene->saveToFile(this->filename);
+    m_scene->saveToFile(this->m_filename);
     QApplication::restoreOverrideCursor();
 
     return true;
@@ -108,20 +115,20 @@ bool NodeEditorWidget::fileSave(const QString& name)
 
 QList<QGraphicsItem*> NodeEditorWidget::getSelectedItems() const
 {
-    return scene->getSelectedItems();
+    return m_scene->getSelectedItems();
 }
 
 bool NodeEditorWidget::hasSelectedItems() const
 {
-    return !scene->getSelectedItems().isEmpty();
+    return !m_scene->getSelectedItems().isEmpty();
 }
 
 bool NodeEditorWidget::canUndo() const
 {
-    return scene->getHistory()->canUndo();
+    return m_scene->getHistory()->canUndo();
 }
 
 bool NodeEditorWidget::canRedo() const
 {
-    return scene->getHistory()->canRedo();
+    return m_scene->getHistory()->canRedo();
 }

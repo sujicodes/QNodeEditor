@@ -23,7 +23,7 @@ CalculatorNodeItemBase::CalculatorNodeItemBase(
 {
     setWidth(160);
     setHeight(74);
-    setEdgeRoundness(10);
+    setEdgeRoundness(0);
     setEdgePadding(10);
     setTitleHorizontalPadding(4);
     setTitleVerticalPadding(4);

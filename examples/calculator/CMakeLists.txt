@@ -16,6 +16,8 @@ set(SOURCES
     CalculatorSubWindow.cpp
     main.cpp
     CalculatorNodeItemBase.cpp
+    DragListWidget.cpp
+    NodeSelectorPopupWidget.cpp
 )
 
 set(HEADERS
@@ -23,6 +25,9 @@ set(HEADERS
     CalculatorSubWindow.h
     CalculatorNodeItemBase.h
     CalculatorNodes.h
+    DragListWidget.h
+    NodeSelectorPopupWidget.h
+    CalculatorNodeEditorGraphicsView.h
 )
 
 

@@ -25,38 +25,39 @@ NodeItem::NodeItem(NodeEditorGraphicsScene* scene,
     scene->addItem(this);
     scene->addNode(this);
 
-    penSelected = QPen(QColor(Theme::instance().nodeSelectedColor));
-    brushBackground = QBrush(QColor(Theme::instance().nodeContentBackgroundColor));
+    m_penSelected = QPen(QColor(Theme::instance().nodeSelectedColor));
+    m_brushBackground = QBrush(QColor(Theme::instance().nodeContentBackgroundColor));
+    m_brushTitle = QBrush(QColor(Theme::instance().nodeTitleBackgroundColor));
 
 
 }
 
 void NodeItem::addInput(SocketItem* input)
 {
-    inputs.push_back(input);
+    m_inputs.push_back(input);
 }
 
 void NodeItem::addOutput(SocketItem* output)
 {
-    outputs.push_back(output);
+    m_outputs.push_back(output);
 }
 
 std::pair<float, float> NodeItem::getSocketPosition(int index, int position, int type)
 {
-    float x = (position == SocketItem::LEFT_TOP || position == SocketItem::LEFT_CENTER || position == SocketItem::LEFT_BOTTOM) ? 0.0f : width;
+    float x = (position == SocketItem::LEFT_TOP || position == SocketItem::LEFT_CENTER || position == SocketItem::LEFT_BOTTOM) ? 0.0f : m_width;
     float y = 0.0f;
-    int numOutOf = (type == SocketItem::INPUT) ? inputs.size() : outputs.size();
+    int numOutOf = (type == SocketItem::INPUT) ? m_inputs.size() : m_outputs.size();
 
     if (position == SocketItem::LEFT_BOTTOM || position == SocketItem::RIGHT_BOTTOM) {
-        y = height - edgeRoundness - titleVerticalPadding - index * socketSpacing;
+        y = m_height - m_edgeRoundness - m_titleVerticalPadding - index * m_socketSpacing;
     } else if (position == SocketItem::LEFT_CENTER || position == SocketItem::RIGHT_CENTER) {
-        float topOffset = titleHeight + 2 * titleVerticalPadding + edgePadding;
-        float availableHeight = height - topOffset;
-        y = topOffset + availableHeight / 2.0f + (index - 0.5f) * socketSpacing;
+        float topOffset = m_titleHeight + 2 * m_titleVerticalPadding + m_edgePadding;
+        float availableHeight = m_height - topOffset;
+        y = topOffset + availableHeight / 2.0f + (index - 0.5f) * m_socketSpacing;
         if (numOutOf > 1)
-            y -= socketSpacing * (numOutOf - 1) / 2.0f;
+            y -= m_socketSpacing * (numOutOf - 1) / 2.0f;
     } else if (position == SocketItem::LEFT_TOP || position == SocketItem::RIGHT_TOP) {
-        y = titleHeight + titleVerticalPadding + edgeRoundness + index * socketSpacing;
+        y = m_titleHeight + m_titleVerticalPadding + m_edgeRoundness + index * m_socketSpacing;
     }
 
     return { x, y };
@@ -64,44 +65,44 @@ std::pair<float, float> NodeItem::getSocketPosition(int index, int position, int
 
 int NodeItem::getInputSocketPosition() const
 {
-    return inputSocketPosition;
+    return m_inputSocketPosition;
 }
 
 int NodeItem::getOutputSocketPosition() const
 {
-    return outputSocketPosition;
+    return m_outputSocketPosition;
 }
 
 void NodeItem::setInputSocketPosition(int value)
 {
-    inputSocketPosition = value;
+    m_inputSocketPosition = value;
     updateSockets();
 }
 
 void NodeItem::setOutputSocketPosition(int value)
 {
-    outputSocketPosition = value;
+    m_outputSocketPosition = value;
     updateSockets();
 }
 
 void NodeItem::updateConnectedEdges()
 {
-    for (SocketItem* socket : inputs)
+    for (SocketItem* socket : m_inputs)
         for (Edge* edge : socket->getConnectedEdges())
             edge->updatePositions();
 
-    for (SocketItem* socket : outputs)
+    for (SocketItem* socket : m_outputs)
         for (Edge* edge : socket->getConnectedEdges())
             edge->updatePositions();
 }
 
 void NodeItem::updateSockets()
 {
-    for (SocketItem* socket : inputs) {
+    for (SocketItem* socket : m_inputs) {
         socket->setPosition(SocketItem::LEFT_CENTER);
         socket->updateSocketPosition();
     }
-    for (SocketItem* socket : outputs) {
+    for (SocketItem* socket : m_outputs) {
         socket->setPosition(SocketItem::RIGHT_CENTER);
         socket->updateSocketPosition();
     }
@@ -110,9 +111,9 @@ void NodeItem::updateSockets()
 QList<Edge*> NodeItem::getConnectedEdges()
 {
     QList<Edge*> edges;
-    for (SocketItem* socket : inputs)
+    for (SocketItem* socket : m_inputs)
         edges.append(socket->getConnectedEdges());
-    for (SocketItem* socket : outputs)
+    for (SocketItem* socket : m_outputs)
         edges.append(socket->getConnectedEdges());
     return edges;
 }
@@ -120,7 +121,7 @@ QList<Edge*> NodeItem::getConnectedEdges()
 std::vector<NodeItem*> NodeItem::getChildrenNodes() const
 {
     std::vector<NodeItem*> result;
-    for (SocketItem* outSocket : outputs) {
+    for (SocketItem* outSocket : m_outputs) {
         for (Edge* edge : outSocket->getConnectedEdges()) {
             SocketItem* other = edge->getOtherSocket(outSocket);
             if (other && other->getNode())
@@ -132,8 +133,8 @@ std::vector<NodeItem*> NodeItem::getChildrenNodes() const
 
 NodeItem* NodeItem::getInput(int index)
 {
-    if (index < 0 || index >= inputs.size()) return nullptr;
-    SocketItem* socket = inputs[index];
+    if (index < 0 || index >= m_inputs.size()) return nullptr;
+    SocketItem* socket = m_inputs[index];
     if (socket->getConnectedEdges().empty()) return nullptr;
     SocketItem* other = socket->getConnectedEdges().front()->getOtherSocket(socket);
     return other ? other->getNode() : nullptr;
@@ -142,8 +143,8 @@ NodeItem* NodeItem::getInput(int index)
 QList<NodeItem*> NodeItem::getInputNodes(int index)
 {
     QList<NodeItem*> result;
-    if (index >= inputs.size()) return result;
-    SocketItem* socket = inputs[index];
+    if (index >= m_inputs.size()) return result;
+    SocketItem* socket = m_inputs[index];
     for (Edge* edge : socket->getConnectedEdges()) {
         SocketItem* other = edge->getOtherSocket(socket);
         if (other && other->getNode())
@@ -155,8 +156,8 @@ QList<NodeItem*> NodeItem::getInputNodes(int index)
 QList<NodeItem*> NodeItem::getOutputNodes(int index)
 {
     QList<NodeItem*> result;
-    if (index >= outputs.size()) return result;
-    SocketItem* socket = outputs[index];
+    if (index >= m_outputs.size()) return result;
+    SocketItem* socket = m_outputs[index];
     for (Edge* edge : socket->getConnectedEdges()) {
         SocketItem* other = edge->getOtherSocket(socket);
         if (other && other->getNode())
@@ -193,24 +194,24 @@ void NodeItem::evalChildren()
 void NodeItem::setTitle(const QString& title)
 {
     m_title = title;
-    if (titleItem) titleItem->setPlainText(title);
+    if (m_titleItem) m_titleItem->setPlainText(title);
 }
 
 void NodeItem::initNode()
 {
-    titleItem = new QGraphicsTextItem(this);
-    titleItem->setDefaultTextColor(Qt::white);
-    titleItem->setFont(QFont("Ubuntu", 10));
-    titleItem->setPos(titleHorizontalPadding, 0);
-    titleItem->setTextWidth(width - 2 * titleHorizontalPadding);
-    titleItem->setPlainText(m_title);
+    m_titleItem = new QGraphicsTextItem(this);
+    m_titleItem->setDefaultTextColor(Qt::white);
+    m_titleItem->setFont(QFont("Ubuntu", 10));
+    m_titleItem->setPos(m_titleHorizontalPadding, 0);
+    m_titleItem->setTextWidth(m_width - 2 * m_titleHorizontalPadding);
+    m_titleItem->setPlainText(m_title);
 
-    itemWidget = setItemWidget();
-    graphicsProxyWidget = new QGraphicsProxyWidget(this);
-    itemWidget->setGeometry(edgePadding, titleHeight + edgePadding,
-                            width - 2 * edgePadding,
-                            height - 2 * edgePadding - titleHeight);
-    graphicsProxyWidget->setWidget(itemWidget);
+    m_itemWidget = setItemWidget();
+    m_graphicsProxyWidget = new QGraphicsProxyWidget(this);
+    m_itemWidget->setGeometry(m_edgePadding, m_titleHeight + m_edgePadding,
+                            m_width - 2 * m_edgePadding,
+                            m_height - 2 * m_edgePadding - m_titleHeight);
+    m_graphicsProxyWidget->setWidget(m_itemWidget);
 
 
     int counter = 0;
@@ -286,7 +287,7 @@ void NodeItem::markDescendantsInvalid(bool newValue)
     }
 }
 
-QRectF NodeItem::boundingRect() const { return QRectF(0, 0, width, height).normalized(); }
+QRectF NodeItem::boundingRect() const { return QRectF(0, 0, m_width, m_height).normalized(); }
 
 void NodeItem::paint(QPainter* painter,
                      const QStyleOptionGraphicsItem*,
@@ -298,29 +299,29 @@ void NodeItem::paint(QPainter* painter,
     pathTitle.addRoundedRect(
         0,
         0,
-        width,
-        titleHeight,
-        edgeRoundness,
-        edgeRoundness
+        m_width,
+        m_titleHeight,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
     pathTitle.addRect(
         0,
-        titleHeight - edgeRoundness,
-        edgeRoundness,
-        edgeRoundness
+        m_titleHeight - m_edgeRoundness,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
     pathTitle.addRect(
-        width - edgeRoundness,
-        titleHeight - edgeRoundness,
-        edgeRoundness,
-        edgeRoundness
+        m_width - m_edgeRoundness,
+        m_titleHeight - m_edgeRoundness,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(brushTitle);
+    painter->setBrush(m_brushTitle);
     painter->drawPath(pathTitle.simplified());
 
     // Content
@@ -328,35 +329,35 @@ void NodeItem::paint(QPainter* painter,
     pathContent.setFillRule(Qt::WindingFill);
     pathContent.addRoundedRect(
         0,
-        titleHeight,
-        width,
-        height - titleHeight,
-        edgeRoundness,
-        edgeRoundness
+        m_titleHeight,
+        m_width,
+        m_height - m_titleHeight,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
     pathContent.addRect(
         0,
-        titleHeight,
-        edgeRoundness,
-        edgeRoundness
+        m_titleHeight,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
     pathContent.addRect(
-        width - edgeRoundness,
-        titleHeight,
-        edgeRoundness,
-        edgeRoundness
+        m_width - m_edgeRoundness,
+        m_titleHeight,
+        m_edgeRoundness,
+        m_edgeRoundness
         );
 
-    painter->setBrush(brushBackground);
+    painter->setBrush(m_brushBackground);
     painter->drawPath(pathContent.simplified());
 
     // Outline
     QPainterPath pathOutline;
-    pathOutline.addRoundedRect(0, 0, width, height, edgeRoundness, edgeRoundness);
+    pathOutline.addRoundedRect(0, 0, m_width, m_height, m_edgeRoundness, m_edgeRoundness);
 
-    painter->setPen(isSelected() ? penSelected : penDefault);
+    painter->setPen(isSelected() ? m_penSelected : m_penDefault);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(pathOutline.simplified());
 }
@@ -366,7 +367,7 @@ void NodeItem::remove()
     qDebug() << "> Removing Node" << this;
     qDebug() << " - remove all edges from sockets";
 
-    for(SocketItem* socket : inputs)
+    for(SocketItem* socket : m_inputs)
     {
         if(socket->hasConnectedEdge())
         {
@@ -380,7 +381,7 @@ void NodeItem::remove()
         }
     }
 
-    for(SocketItem* socket : outputs)
+    for(SocketItem* socket : m_outputs)
     {
         if(socket->hasConnectedEdge())
         {
@@ -409,20 +410,20 @@ void NodeItem::remove()
 
 void NodeItem::onNodeMoved()
 {
-    lastSelectedState = true;
+    m_lastSelectedState = true;
 }
 
 QJsonObject NodeItem::serialize() const
 {
     QJsonObject obj;
     obj["type"] = nodeType();
-    obj["id"] = id;
+    obj["id"] = m_id;
     obj["title"] = m_title;
     obj["pos_x"] = scenePos().x();
     obj["pos_y"] = scenePos().y();
 
     QJsonArray inputsArray;
-    for(const SocketItem* socket : inputs)
+    for(const SocketItem* socket : m_inputs)
     {
         if(socket) inputsArray.append(socket->serialize());
     }
@@ -430,7 +431,7 @@ QJsonObject NodeItem::serialize() const
     obj["inputs"] = inputsArray;
 
     QJsonArray outputsArray;
-    for(const SocketItem* socket : outputs)
+    for(const SocketItem* socket : m_outputs)
     {
         if(socket) outputsArray.append(socket->serialize());
     }
@@ -449,7 +450,7 @@ void NodeItem::deserialize(
     if(restoreId)
     {
         // Set ID and add to hashmap
-        id = static_cast<qint64>(data["id"].toDouble());
+        m_id = static_cast<qint64>(data["id"].toDouble());
         hashmap[data["id"].toDouble()] = this;
     }
 
@@ -476,24 +477,24 @@ void NodeItem::deserialize(
     });
 
     // Deserialize inputs
-    for(SocketItem* socket : inputs)
+    for(SocketItem* socket : m_inputs)
     {
         if(socket)
             scene->removeItem(socket);
         delete socket;
     }
 
-    for(SocketItem* socket : outputs)
+    for(SocketItem* socket : m_outputs)
     {
         if(socket)
             scene->removeItem(socket);
         delete socket;
     }
 
-    inputs.clear();
-    outputs.clear();
+    m_inputs.clear();
+    m_outputs.clear();
 
-    for(const auto& socketData : inputs)
+    for(const auto& socketData : m_inputs)
         qDebug() << "socktee" << socketData; 
     
     for(const auto& socketData : inputsList)
@@ -503,7 +504,7 @@ void NodeItem::deserialize(
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
         newSocket->deserialize(socketData, hashmap, restoreId);
-        inputs.push_back(newSocket);
+        m_inputs.push_back(newSocket);
     }
 
     // Extract outputs array
@@ -522,7 +523,7 @@ void NodeItem::deserialize(
         return aKey < bKey;
     });
 
-    for(const auto& socketData : outputs)
+    for(const auto& socketData : m_outputs)
         qDebug() << "socktee" << socketData; 
     
     for(const auto& socketData : outputsList)
@@ -532,7 +533,7 @@ void NodeItem::deserialize(
                                      socketData["index"].toInt(),
                                      socketData["position"].toInt());
         newSocket->deserialize(socketData, hashmap, restoreId);
-        outputs.push_back(newSocket);
+        m_outputs.push_back(newSocket);
     }
 
     updateSockets();

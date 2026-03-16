@@ -18,30 +18,30 @@
 
 NodeEditorGraphicsScene::NodeEditorGraphicsScene()
     : QGraphicsScene(),
-    sceneWidth(64000),
-    sceneHeight(64000),
-    gridSize(20),
-    gridSquares(5),
-    colorBackground("#393939"),
-    colorLight("#2f2f2f"),
-    colorDark("#292929"),
-    penLight(colorLight),
-    penDark(colorDark)
+    m_sceneWidth(64000),
+    m_sceneHeight(64000),
+    m_gridSize(20),
+    m_gridSquares(5),
+    m_colorBackground("#393939"),
+    m_colorLight("#2f2f2f"),
+    m_colorDark("#292929"),
+    m_penLight(m_colorLight),
+    m_penDark(m_colorDark)
 {
-    penLight.setWidth(1);
-    penDark.setWidth(2);
-    setGraphicsScene(sceneWidth, sceneHeight);
-    setBackgroundBrush(colorBackground);
+    m_penLight.setWidth(1);
+    m_penDark.setWidth(2);
+    setGraphicsScene(m_sceneWidth, m_sceneHeight);
+    setBackgroundBrush(m_colorBackground);
 
-    history = new QUndoStack();
+    m_history = new QUndoStack();
 
     QObject::connect(this, &NodeEditorGraphicsScene::itemSelected,    this, &NodeEditorGraphicsScene::onItemSelected);
     QObject::connect(this, &NodeEditorGraphicsScene::itemsDeselected, this, &NodeEditorGraphicsScene::onItemsDeselected);
 }
 
 void NodeEditorGraphicsScene::setGraphicsScene(int width, int height) {
-    sceneWidth  = width;
-    sceneHeight = height;
+    m_sceneWidth  = width;
+    m_sceneHeight = height;
     setSceneRect(-width / 2, -height / 2, width, height);
 }
 
@@ -55,28 +55,28 @@ void NodeEditorGraphicsScene::drawBackground(QPainter *painter, const QRectF &re
     int top    = std::floor(rect.top());
     int bottom = std::ceil(rect.bottom());
 
-    int firstLeft = left - (left % gridSize);
-    int firstTop  = top  - (top  % gridSize);
+    int firstLeft = left - (left % m_gridSize);
+    int firstTop  = top  - (top  % m_gridSize);
 
     QVector<QLine> linesLight, linesDark;
 
-    for (int x = firstLeft; x < right; x += gridSize) {
-        if (x % (gridSize * gridSquares) != 0)
+    for (int x = firstLeft; x < right; x += m_gridSize) {
+        if (x % (m_gridSize * m_gridSquares) != 0)
             linesLight.append(QLine(x, top, x, bottom));
         else
             linesDark.append(QLine(x, top, x, bottom));
     }
 
-    for (int y = firstTop; y < bottom; y += gridSize) {
-        if (y % (gridSize * gridSquares) != 0)
+    for (int y = firstTop; y < bottom; y += m_gridSize) {
+        if (y % (m_gridSize * m_gridSquares) != 0)
             linesLight.append(QLine(left, y, right, y));
         else
             linesDark.append(QLine(left, y, right, y));
     }
 
-    painter->setPen(penLight);
+    painter->setPen(m_penLight);
     painter->drawLines(linesLight);
-    painter->setPen(penDark);
+    painter->setPen(m_penDark);
     painter->drawLines(linesDark);
 }
 
@@ -88,31 +88,31 @@ NodeItem* NodeEditorGraphicsScene::createNode(QString type) {
     return NodeRegistry::instance().createNode(type, this);
 }
 
-void NodeEditorGraphicsScene::addNode(NodeItem* node)    { nodes.append(node); }
-void NodeEditorGraphicsScene::addEdge(Edge* edge)        { edges.append(edge); }
-void NodeEditorGraphicsScene::removeNode(NodeItem* node) { nodes.removeAll(node); }
-void NodeEditorGraphicsScene::removeEdge(Edge* edge)     { edges.removeAll(edge); }
+void NodeEditorGraphicsScene::addNode(NodeItem* node)    { m_nodes.append(node); }
+void NodeEditorGraphicsScene::addEdge(Edge* edge)        { m_edges.append(edge); }
+void NodeEditorGraphicsScene::removeNode(NodeItem* node) { m_nodes.removeAll(node); }
+void NodeEditorGraphicsScene::removeEdge(Edge* edge)     { m_edges.removeAll(edge); }
 
 void NodeEditorGraphicsScene::clearScene() {
-    while (!nodes.empty()) {
-        if (nodes.front()) nodes.front()->remove();
+    while (!m_nodes.empty()) {
+        if (m_nodes.front()) m_nodes.front()->remove();
     }
     setHasBeenModified(false);
 }
 
 QJsonObject NodeEditorGraphicsScene::serialize() const {
     QJsonObject obj;
-    obj["id"]           = id;
-    obj["scene_width"]  = sceneWidth;
-    obj["scene_height"] = sceneHeight;
+    obj["id"]           = m_id;
+    obj["scene_width"]  = m_sceneWidth;
+    obj["scene_height"] = m_sceneHeight;
 
     QJsonArray nodesArray;
-    for (const NodeItem* node : nodes)
+    for (const NodeItem* node : m_nodes)
         if (node) nodesArray.append(node->serialize());
     obj["nodes"] = nodesArray;
 
     QJsonArray edgesArray;
-    for (const Edge* edge : edges)
+    for (const Edge* edge : m_edges)
         if (edge) edgesArray.append(edge->serialize());
     obj["edges"] = edgesArray;
 
@@ -129,8 +129,8 @@ void NodeEditorGraphicsScene::deserialize(
     hashmap.clear();
 
     if (restoreId) {
-        id = static_cast<qint64>(data["id"].toDouble());
-        hashmap[id] = this;
+        m_id = static_cast<qint64>(data["id"].toDouble());
+        hashmap[m_id] = this;
     }
 
     if (data.contains("nodes") && data["nodes"].isArray()) {
@@ -229,26 +229,26 @@ QJsonObject NodeEditorGraphicsScene::serializeSelected(bool del) {
     data["edges"] = edgesFinal;
 
     if (del) {
-        history->push(new CutCommand(this, data, selectedItems()));
+        m_history->push(new CutCommand(this, data, selectedItems()));
         setHasBeenModified(true);
     }
     return data;
 }
 
 void NodeEditorGraphicsScene::deserializeFromClipboard(const QJsonObject &data) {
-    history->push(new PasteCommand(this, data));
+    m_history->push(new PasteCommand(this, data));
     setHasBeenModified(true);
 }
 
-NodeItem* NodeEditorGraphicsScene::getNodeById(qint64 id) const {
-    for (NodeItem* n : nodes)
-        if (n && n->getId() == id) return n;
+NodeItem* NodeEditorGraphicsScene::getNodeById(qint64 m_id) const {
+    for (NodeItem* n : m_nodes)
+        if (n && n->getId() == m_id) return n;
     return nullptr;
 }
 
 Edge* NodeEditorGraphicsScene::getEdgeById(qint64 id) const {
-    for (Edge* e : edges)
-        if (e && e->getId() == id) return e;
+    for (Edge* e : m_edges)
+        if (e && e->getId() == m_id) return e;
     return nullptr;
 }
 
@@ -269,25 +269,25 @@ void NodeEditorGraphicsScene::addItemSelectedListener(const std::function<void()
 void NodeEditorGraphicsScene::addItemsDeselectedListener(const std::function<void()>& cb) { m_itemsDeselectedListeners.push_back(cb); }
 
 void NodeEditorGraphicsScene::resetLastSelectedStates() {
-    for (auto* node : nodes)
+    for (auto* node : m_nodes)
         if (node) node->setLastSelectedState(false);
-    for (auto* edge : edges)
+    for (auto* edge : m_edges)
         if (edge && edge->getEdgeGraphicsItem())
             edge->getEdgeGraphicsItem()->setLastSelectedState(false);
 }
 
 void NodeEditorGraphicsScene::onItemSelected() {
     QList<QGraphicsItem*> current = selectedItems();
-    if (current != lastSelectedItems) {
-        lastSelectedItems = current;
+    if (current != m_lastSelectedItems) {
+        m_lastSelectedItems = current;
         for (auto& cb : m_itemSelectedListeners) cb();
     }
 }
 
 void NodeEditorGraphicsScene::onItemsDeselected() {
     resetLastSelectedStates();
-    if (!lastSelectedItems.isEmpty()) {
-        lastSelectedItems.clear();
+    if (!m_lastSelectedItems.isEmpty()) {
+        m_lastSelectedItems.clear();
         for (auto& cb : m_itemsDeselectedListeners) cb();
     }
 }

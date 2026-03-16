@@ -18,13 +18,13 @@ void EdgeGraphicsPathItem::initUI()
 
 void EdgeGraphicsPathItem::initAssets()
 {
-    pen = QPen(QColor("#001000"));
-    penSelected = QPen(QColor("#00ff00"));
+    m_pen = QPen(QColor("#001000"));
+    m_penSelected = QPen(QColor("#00ff00"));
     penDragging = QPen(QColor("#001000"));
     penDragging.setStyle(Qt::DashLine);
 
-    pen.setWidthF(2.0);
-    penSelected.setWidthF(2.0);
+    m_pen.setWidthF(2.0);
+    m_penSelected.setWidthF(2.0);
     penDragging.setWidthF(2.0);
 }
 
@@ -40,11 +40,11 @@ void EdgeGraphicsPathItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     QGraphicsPathItem::mouseReleaseEvent(event);
 
-    if(lastSelectedState != isSelected())
+    if(m_lastSelectedState != isSelected())
     {
         if(edge && edge->getScene())
             edge->getScene()->resetLastSelectedStates();
-        lastSelectedState = isSelected();
+        m_lastSelectedState = isSelected();
         onSelected();
     }
 }
@@ -99,17 +99,9 @@ void EdgeGraphicsPathItem::paint(QPainter* painter, const QStyleOptionGraphicsIt
     }
     else
     {
-        painter->setPen(isSelected() ? penSelected : pen);
+        painter->setPen(isSelected() ? m_penSelected : m_pen);
     }
 
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(path());
-}
-
-bool EdgeGraphicsPathItem::intersectsWith(const QPointF& p1, const QPointF& p2)
-{
-    QPainterPath cutPath(p1);
-    cutPath.lineTo(p2);
-
-    return cutPath.intersects(calcPath());
 }

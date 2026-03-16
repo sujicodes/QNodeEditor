@@ -15,13 +15,13 @@
 #include <QDebug>
 #include <qgraphicsview.h>
 #include "UndoCommands.h"
-
+#include "CalculatorNodeEditorGraphicsView.h"
 CalculatorSubWindow::CalculatorSubWindow(QWidget *parent)
     : NodeEditorWidget(parent)
 {
     // Delete this widget automatically when the window is closed
     setAttribute(Qt::WA_DeleteOnClose);
-
+    setGraphicsView(new CalculatorNodeEditorGraphicsView(getScene(), this));
     // Set initial window title
     setTitle();
 

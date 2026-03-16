@@ -7,23 +7,23 @@
 
 SocketItem::SocketItem(NodeItem* node, int type, int index, int position,
                        bool allowMultiEdges)
-    : node(node), socketType(type), index(index), position(position), allowedMultiEdges(allowMultiEdges)
+    : m_node(node), m_socketType(type), m_index(index), m_position(position), allowedMultiEdges(allowMultiEdges)
 {
     QColor backgroundColor(Theme::instance().socketBackgroundColor);
     QColor outlineColor(Theme::instance().socketOutlineColor);
 
-    pen = QPen(outlineColor);
-    pen.setWidthF(outlineWidth);
+    m_pen = QPen(outlineColor);
+    m_pen.setWidthF(m_outlineWidth);
 
-    brush = QBrush(backgroundColor);
+    m_brush = QBrush(backgroundColor);
 
-    setParentItem(node);
+    setParentItem(m_node);
     updateSocketPosition();
 }
 
 QPointF SocketItem::getSocketPosition() const
 {
-    auto posPair = node->getSocketPosition(index, position, socketType);
+    auto posPair = m_node->getSocketPosition(m_index, m_position, m_socketType);
     return QPointF(posPair.first, posPair.second);
 }
 
@@ -35,28 +35,28 @@ void SocketItem::updateSocketPosition()
 
 void SocketItem::addEdge(Edge* edge)
 {
-    edges.append(edge);
+    m_edges.append(edge);
 }
 
 bool SocketItem::hasConnectedEdge() const
 {
-    return !edges.isEmpty();
+    return !m_edges.isEmpty();
 }
 
 QList<Edge*> SocketItem::getConnectedEdges() const
 {
-    return edges;
+    return m_edges;
 }
 
 void SocketItem::removeEdge(Edge* edge)
 {
-    edges.removeOne(edge);
+    m_edges.removeOne(edge);
 }
 
 void SocketItem::removeAllEdges()
 {
-    while (!edges.isEmpty()) {
-        Edge* edge = edges.takeFirst();
+    while (!m_edges.isEmpty()) {
+        Edge* edge = m_edges.takeFirst();
         if (edge) edge->remove();
     }
 }
@@ -64,11 +64,11 @@ void SocketItem::removeAllEdges()
 QJsonObject SocketItem::serialize() const
 {
     QJsonObject obj;
-    obj["id"] = static_cast<qint64>(id);
-    obj["index"] = index;
+    obj["id"] = static_cast<qint64>(m_id);
+    obj["index"] = m_index;
     obj["allowed_multi_edges"] = allowedMultiEdges;
-    obj["position"] = position;
-    obj["socket_type"] = socketType;
+    obj["position"] = m_position;
+    obj["socket_type"] = m_socketType;
     return obj;
 }
 
@@ -77,22 +77,22 @@ void SocketItem::deserialize(const QJsonObject& data,
                              bool restoreId)
 {
     if (restoreId)
-        id = static_cast<qint64>(data["id"].toDouble());
+        m_id = static_cast<qint64>(data["id"].toDouble());
 
     allowedMultiEdges = data["allowed_multi_edges"].toBool();
-    socketType = data["socket_type"].toInt();
+    m_socketType = data["socket_type"].toInt();
     hashmap[data["id"].toDouble()] = this;
 }
 
 QRectF SocketItem::boundingRect() const
 {
-    return QRectF(-radius - outlineWidth, -radius - outlineWidth,
-                  2 * (radius + outlineWidth), 2 * (radius + outlineWidth));
+    return QRectF(-m_radius - m_outlineWidth, -m_radius - m_outlineWidth,
+                  2 * (m_radius + m_outlineWidth), 2 * (m_radius + m_outlineWidth));
 }
 
 void SocketItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-    painter->setBrush(brush);
-    painter->setPen(pen);
-    painter->drawEllipse(-radius, -radius, 2 * radius, 2 * radius);
+    painter->setBrush(m_brush);
+    painter->setPen(m_pen);
+    painter->drawEllipse(-m_radius, -m_radius, 2 * m_radius, 2 * m_radius);
 }

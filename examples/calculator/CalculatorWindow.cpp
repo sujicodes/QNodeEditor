@@ -117,9 +117,9 @@ void CalculatorWindow::updateMenus()
     if(cascadeAct)    cascadeAct->setEnabled(hasMdiChild);
     if(nextAct)       nextAct->setEnabled(true);
     if(previousAct)   previousAct->setEnabled(hasMdiChild);
-    actSave->setEnabled(hasMdiChild);
-    actSaveAs->setEnabled(hasMdiChild);
-    qDebug() << "NodeEditorWindow::updateMenus -> save:" << actSave->isEnabled();
+    m_actSave->setEnabled(hasMdiChild);
+    m_actSaveAs->setEnabled(hasMdiChild);
+    qDebug() << "NodeEditorWindow::updateMenus -> save:" << m_actSave->isEnabled();
     if(separatorAct)  separatorAct->setVisible(hasMdiChild);
     updateEditMenu();
 }
@@ -343,18 +343,18 @@ void CalculatorWindow::updateEditMenu()
     bool hasMdiChild = active;
 
     // Paste only depends on whether an editor exists
-    actPaste->setEnabled(hasMdiChild);
+    m_actPaste->setEnabled(hasMdiChild);
 
     // These depend on active editor + selection
     bool hasSelection = hasMdiChild && active->hasSelectedItems();
 
-    actCut->setEnabled(hasSelection);
-    actCopy->setEnabled(hasSelection);
-    actDelete->setEnabled(hasSelection);
+    m_actCut->setEnabled(hasSelection);
+    m_actCopy->setEnabled(hasSelection);
+    m_actDelete->setEnabled(hasSelection);
 
-    // Undo / Redo depend on the editor's history
-    actUndo->setEnabled(hasMdiChild && active->canUndo());
-    actRedo->setEnabled(hasMdiChild && active->canRedo());
+    // Undo / Redo depend on the editor's m_history
+    m_actUndo->setEnabled(hasMdiChild && active->canUndo());
+    m_actRedo->setEnabled(hasMdiChild && active->canRedo());
 }
 
 void CalculatorWindow::hookEditorSignals(NodeEditorWidget* editor)

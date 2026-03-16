@@ -7,14 +7,14 @@
 #include "NodeItem.h"
 
 Edge::Edge(NodeEditorGraphicsScene* scene, SocketItem* startSocket, SocketItem* endSocket)
-    : scene(scene), m_startSocket(startSocket), m_endSocket(endSocket)
+    : m_scene(scene), m_startSocket(startSocket), m_endSocket(endSocket)
 
 {
     setStartSocket(startSocket);
     setEndSocket(endSocket);
-    grEdge = new BezierEdgeGraphicsPathItem(this);
-    scene->addItem(grEdge);
-    scene->addEdge(this);
+    m_grEdge = new BezierEdgeGraphicsPathItem(this);
+    m_scene->addItem(m_grEdge);
+    m_scene->addEdge(this);
     if(startSocket)
     {
         updatePositions();
@@ -32,7 +32,7 @@ void Edge::updatePositions()
     QPointF nodePos = m_startSocket->getNode()->pos();
     sourcePos.rx() += nodePos.x();
     sourcePos.ry() += nodePos.y();
-    grEdge->setSource(sourcePos);
+    m_grEdge->setSource(sourcePos);
 
     if(m_endSocket)
     {
@@ -40,14 +40,14 @@ void Edge::updatePositions()
         QPointF endNodePos = m_endSocket->getNode()->pos();
         endPos.rx() += endNodePos.x();
         endPos.ry() += endNodePos.y();
-        grEdge->setDestination(endPos);
+        m_grEdge->setDestination(endPos);
     }
     else
     {
-        grEdge->setDestination(sourcePos);
+        m_grEdge->setDestination(sourcePos);
     }
 
-    grEdge->update();
+    m_grEdge->update();
 }
 
 void Edge::setStartSocket(SocketItem* socket)
@@ -82,13 +82,13 @@ void Edge::remove()
     std::vector<SocketItem*> oldSockets = { m_startSocket, m_endSocket };
 
     removeFromSockets();
-    if(scene && grEdge)
+    if(m_scene && m_grEdge)
     {
-        scene->removeItem(grEdge);
-        grEdge = nullptr;
+        m_scene->removeItem(m_grEdge);
+        m_grEdge = nullptr;
     }
 
-    if(scene) scene->removeEdge(this);
+    if(m_scene) m_scene->removeEdge(this);
 
     qDebug() << " - everything is done.";
 
@@ -115,7 +115,7 @@ void Edge::remove()
 QJsonObject Edge::serialize() const
 {
     QJsonObject obj;
-    obj["id"] = static_cast<qint64>(id);
+    obj["id"] = static_cast<qint64>(m_id);
     // Assuming edge_type is convertible to int or QString
 
     obj["start"] = m_startSocket ? static_cast<qint64>(m_startSocket->getId()) : QJsonValue();
@@ -133,7 +133,7 @@ void Edge::deserialize(
     if (restoreId)
     {
         // Set ID and add to hashmap
-        id = static_cast<qint64>(data["id"].toDouble());
+        m_id = static_cast<qint64>(data["id"].toDouble());
     }
 
     qint64 startId = static_cast<qint64>(data["start"].toDouble());
